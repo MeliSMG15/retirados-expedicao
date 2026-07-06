@@ -236,8 +236,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS7nH2Dlykwz844OJgs
 
 Chart.register(ChartDataLabels);
 
-const PAGE = {modal:1, motivos:1, promises:1};
-const PS   = {modal:8, motivos:5, promises:8};
+const PAGE = {modal:1, motivos:1, promises:1, rotas:1};
+const PS   = {modal:8, motivos:5, promises:8, rotas:8};
 let DATA = null, barChart = null;
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -266,8 +266,9 @@ async function load() {
     DATA.motivos      = DATA.motivos      || {};
     DATA.mByCarrier   = DATA.mByCarrier   || {};
     DATA.promises     = DATA.promises     || {};
+    DATA.rotas        = DATA.rotas        || {};
     DATA.carriersList = DATA.carriersList || Object.keys(DATA.carriers);
-    PAGE.modal = PAGE.motivos = PAGE.promises = 1;
+    PAGE.modal = PAGE.motivos = PAGE.promises = PAGE.rotas = 1;
     render();
   } catch(e) {
     console.error('[retirados]', e);
@@ -324,16 +325,29 @@ function render() {
         </div>
         <div class="tbl-wrap" id="cross-wrap"></div>
       </div>
-      <div class="card">
-        <div class="card-head">
-          <span class="card-title">Data das Promessas</span>
-          <span class="card-badge" id="badge-promises"></span>
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Data das Promessas</span>
+            <span class="card-badge" id="badge-promises"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Data</th><th>Qtd ↓</th></tr></thead>
+            <tbody id="promises-body"></tbody></table>
+          </div>
+          <div class="pag" id="promises-pag"></div>
         </div>
-        <div class="tbl-wrap">
-          <table><thead><tr><th>Data</th><th>Qtd ↓</th></tr></thead>
-          <tbody id="promises-body"></tbody></table>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Retiradas por Rota</span>
+            <span class="card-badge" id="badge-rotas"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Rota</th><th>Qtd ↓</th></tr></thead>
+            <tbody id="rotas-body"></tbody></table>
+          </div>
+          <div class="pag" id="rotas-pag"></div>
         </div>
-        <div class="pag" id="promises-pag"></div>
       </div>
     </div>`;
 
@@ -343,6 +357,7 @@ function render() {
   renderMotivos();
   renderCross();
   renderTable('promises-body','promises-pag', 'badge-promises', DATA.promises, 'promises');
+  renderTable('rotas-body',   'rotas-pag',    'badge-rotas',    DATA.rotas,    'rotas');
 }
 
 // ── KPI CARDS ────────────────────────────────────────────────
@@ -526,6 +541,7 @@ window.turnPage = (key, dir) => {
   if (key==='modal')    renderTable('modal-body',   'modal-pag',   'badge-modals',   DATA.modals,   'modal');
   if (key==='motivos')  renderMotivos();
   if (key==='promises') renderTable('promises-body','promises-pag','badge-promises', DATA.promises, 'promises');
+  if (key==='rotas')    renderTable('rotas-body',   'rotas-pag',   'badge-rotas',    DATA.rotas,    'rotas');
 };
 
 // ── HELPERS ──────────────────────────────────────────────────
