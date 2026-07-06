@@ -131,13 +131,24 @@ async function load() {
   try {
     const url = `${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`;
     const r = await fetch(url);
-    DATA = await r.json();
+    const text = await r.text();
+    console.log('[retirados] resposta bruta:', text.substring(0, 500));
+    DATA = JSON.parse(text);
     if (DATA.error) throw new Error(DATA.error);
+    // normaliza campos para evitar null/undefined
+    DATA.total        = DATA.total        || 0;
+    DATA.carriers     = DATA.carriers     || {};
+    DATA.modals       = DATA.modals       || {};
+    DATA.motivos      = DATA.motivos      || {};
+    DATA.mByCarrier   = DATA.mByCarrier   || {};
+    DATA.promises     = DATA.promises     || {};
+    DATA.carriersList = DATA.carriersList || Object.keys(DATA.carriers);
     PAGE.modal = PAGE.motivos = PAGE.promises = 1;
     render();
   } catch(e) {
+    console.error('[retirados] erro:', e);
     document.getElementById('content').innerHTML =
-      `<div class="error">Erro ao carregar dados: ${e.message}<br><small>Verifique se o Apps Script foi publicado e a URL está configurada.</small></div>`;
+      `<div class="error">Erro ao carregar dados: ${e.message}<br><small>Abra o Console do navegador (F12) para ver a resposta do servidor.</small></div>`;
   }
 }
 
@@ -267,7 +278,7 @@ function renderCross() {
 
   // Carriers that appear in at least one motivo, ordered ascending by total count
   const allCount = {};
-  motivos.forEach(m => Object.entries(DATA.mByCarrier[m]).forEach(([c, n]) => {
+  motivos.forEach(m => Object.entries(DATA.mByCarrier[m] || {}).forEach(([c, n]) => {
     allCount[c] = (allCount[c] || 0) + n;
   }));
   const carriers = Object.keys(allCount).sort((a, b) => allCount[a] - allCount[b]);
