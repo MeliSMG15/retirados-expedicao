@@ -3,139 +3,263 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Retirados da Expedição SMG15</title>
+<title>Retirados da Expedição · SMG15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-size:13px}
+:root{
+  --bg:#f1f5f9;
+  --surface:#ffffff;
+  --brand:#dc2626;
+  --brand-lt:#fee2e2;
+  --brand-dk:#991b1b;
+  --navy:#0f172a;
+  --slate:#334155;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --row-hover:#f8fafc;
+  --radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-size:13px;line-height:1.5}
 
-  /* ── Header ── */
-  .header{background:#fff;border-bottom:1px solid #ddd;padding:14px 24px;display:flex;align-items:center;gap:20px}
-  .header-title{display:flex;align-items:center;gap:12px;flex:1}
-  .header-title .icon{font-size:34px;line-height:1}
-  .header-title h1{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;line-height:1.2}
-  .controls{display:flex;align-items:center;gap:12px}
-  .ctrl{display:flex;align-items:center;gap:7px;border:1px solid #ccc;border-radius:4px;padding:7px 12px;background:#fff}
-  .ctrl-icon{font-size:16px;color:#555}
-  .ctrl input,.ctrl select{border:none;outline:none;font-size:13px;background:transparent;cursor:pointer;color:#333}
-  .ctrl span.sep{color:#aaa}
+/* ── HEADER ─────────────────────────────────────── */
+.topbar{
+  background:var(--navy);
+  border-bottom:3px solid var(--brand);
+  padding:0 28px;
+  height:64px;
+  display:flex;align-items:center;gap:20px;
+  position:sticky;top:0;z-index:100;
+}
+.brand{display:flex;align-items:center;gap:12px;flex:1}
+.brand-icon{
+  width:40px;height:40px;background:var(--brand);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.brand-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;line-height:1.2}
+.brand-sub{color:#94a3b8;font-size:11px}
+.filters{display:flex;align-items:center;gap:10px}
+.fpill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:8px 14px;cursor:pointer;transition:background .15s;
+}
+.fpill:hover{background:rgba(255,255,255,.14)}
+.fpill svg{opacity:.7;flex-shrink:0}
+.fpill input,.fpill select{
+  border:none;outline:none;background:transparent;color:#fff;
+  font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;
+}
+.fpill input{min-width:110px}
+.fpill select{min-width:120px}
+.fpill select option{color:#111;background:#fff}
+.fsep{color:rgba(255,255,255,.3);font-size:12px}
+.btn-refresh{
+  background:var(--brand);color:#fff;border:none;border-radius:8px;
+  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;
+  transition:background .15s;
+}
+.btn-refresh:hover{background:var(--brand-dk)}
 
-  /* ── Layout ── */
-  .content{padding:18px 24px;display:flex;flex-direction:column;gap:16px}
-  .row1{display:grid;grid-template-columns:1fr 1fr 280px;gap:16px;align-items:start}
-  .row2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start}
-  .col-right{display:flex;flex-direction:column;gap:16px}
+/* ── CONTENT ────────────────────────────────────── */
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
 
-  /* ── Cards ── */
-  .card{background:#fff;border-radius:6px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-  .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px;color:#111}
+/* ── KPI ROW ────────────────────────────────────── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi-card{
+  background:var(--surface);border-radius:var(--radius);padding:18px 20px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  display:flex;flex-direction:column;gap:5px;
+  animation:fadeUp .3s ease both;
+}
+.kpi-card:nth-child(2){animation-delay:.05s}
+.kpi-card:nth-child(3){animation-delay:.10s}
+.kpi-card:nth-child(4){animation-delay:.15s}
+.kpi-icon{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;margin-bottom:6px;align-self:flex-start;
+}
+.ic-red{background:#fee2e2} .ic-blue{background:#dbeafe}
+.ic-green{background:#dcfce7} .ic-amber{background:#fef3c7}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.kpi-value{font-size:32px;font-weight:700;line-height:1;color:var(--navy)}
+.kpi-sub{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  /* ── Chart ── */
-  .chart-wrap{position:relative;height:250px}
+/* ── CARDS ──────────────────────────────────────── */
+.card{
+  background:var(--surface);border-radius:var(--radius);
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  overflow:hidden;animation:fadeUp .3s ease both;
+}
+.card-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--slate)}
+.card-badge{
+  font-size:11px;background:var(--brand-lt);color:var(--brand);
+  padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0;
+}
 
-  /* ── Tables ── */
-  table{width:100%;border-collapse:collapse}
-  thead th{background:#2c2c2c;color:#fff;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-  thead th:last-child{text-align:right}
-  tbody td{padding:7px 10px;border-bottom:1px solid #f2f2f2;font-size:13px}
-  tbody td:last-child{text-align:right}
-  tbody tr:last-child td{border-bottom:none}
-  tbody tr:hover td{background:#fafafa}
-  .rank{color:#999;margin-right:4px;font-size:12px}
-  .trunc{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+/* ── LAYOUT GRIDS ───────────────────────────────── */
+.grid-a{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start}
+.grid-b{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px}
 
-  /* ── Total card ── */
-  .total-card{text-align:center;padding:22px 16px}
-  .total-label{font-size:14px;color:#666;margin-bottom:6px}
-  .total-value{font-size:52px;font-weight:300;color:#222;line-height:1}
+/* ── CHART ──────────────────────────────────────── */
+.chart-wrap{height:268px;padding:16px 18px;position:relative}
 
-  /* ── Cross table heatmap ── */
-  .cross-wrap{overflow-x:auto}
-  .cross-table{width:100%}
-  .cross-table thead th{text-align:center}
-  .cross-table thead th:first-child{text-align:left}
-  .cross-table thead th.group-header{background:#1a1a1a;font-size:10px;padding:5px 8px}
-  .cross-table thead th.sub-header{background:#444;font-size:11px;padding:7px 8px}
-  .cross-table tbody td{text-align:center;font-weight:500;font-size:13px}
-  .cross-table tbody td:first-child{text-align:left;font-size:12px;max-width:200px}
-  .h0{background:#fff;color:#bbb}
-  .h1{background:#fce8e8;color:#555}
-  .h2{background:#f5a0a0;color:#333}
-  .h3{background:#e02020;color:#fff;font-weight:700}
+/* ── TABLES ─────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{
+  background:#f8fafc;color:var(--muted);
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
+  padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+thead th:last-child{text-align:right}
+tbody tr{transition:background .1s}
+tbody tr:hover td{background:var(--row-hover)}
+tbody td{padding:10px 14px;border-bottom:1px solid #f1f5f9;font-size:13px}
+tbody td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:none}
 
-  /* ── Pagination ── */
-  .pag{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#666}
-  .pag button{border:1px solid #ddd;background:#fff;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:13px;color:#444}
-  .pag button:disabled{opacity:.35;cursor:default}
+.rank-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;
+  margin-right:8px;flex-shrink:0;vertical-align:middle;
+}
+.r1{background:#fbbf24;color:#78350f}
+.r2{background:#94a3b8;color:#1e293b}
+.r3{background:#b45309;color:#fff}
+.rn{background:#e2e8f0;color:var(--muted)}
 
-  /* ── States ── */
-  .loading{text-align:center;padding:60px;color:#888;font-size:14px}
-  .error{text-align:center;padding:40px;color:#c00;font-size:14px}
+.trunc{
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;display:inline-block;vertical-align:middle;
+}
+
+/* ── HEATMAP CROSS TABLE ────────────────────────── */
+.heat-table thead th{background:var(--navy);color:rgba(255,255,255,.75)}
+.heat-table thead th:first-child{text-align:left;min-width:170px}
+.heat-table tbody td{text-align:center !important;font-weight:600}
+.heat-table tbody td:first-child{text-align:left !important;font-weight:400;font-size:12px}
+.h0{color:#cbd5e1}
+.h1{background:#fee2e2;color:#991b1b}
+.h2{background:#fca5a5;color:#7f1d1d}
+.h3{background:#dc2626;color:#fff}
+
+/* ── PAGINATION ─────────────────────────────────── */
+.pag{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 14px;border-top:1px solid #f1f5f9;
+  font-size:12px;color:var(--muted);
+}
+.pag-info{flex:1}
+.pag-btn{
+  width:28px;height:28px;border:1px solid var(--border);background:var(--surface);
+  border-radius:6px;cursor:pointer;font-size:15px;color:var(--slate);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.pag-btn:hover:not(:disabled){background:var(--brand);color:#fff;border-color:var(--brand)}
+.pag-btn:disabled{opacity:.3;cursor:default}
+
+/* ── EMPTY / LOADING / ERROR ────────────────────── */
+.empty{text-align:center;padding:28px;color:var(--muted);font-size:13px}
+.loader{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px;gap:14px;color:var(--muted);
+}
+.spinner{
+  width:40px;height:40px;border:3px solid var(--border);
+  border-top-color:var(--brand);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.err-box{
+  background:#fff1f2;border:1px solid #fecdd3;border-radius:var(--radius);
+  padding:28px;color:var(--brand-dk);text-align:center;
+}
+.err-box strong{font-size:15px;display:block;margin-bottom:6px}
+.err-box small{color:var(--muted);font-size:12px}
+
+/* ── ANIMATIONS ─────────────────────────────────── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<!-- ═══ Header ═══ -->
-<div class="header">
-  <div class="header-title">
-    <span class="icon">📦</span>
-    <h1>Retirados da<br>Expedição SMG15</h1>
+<!-- ═══ TOPBAR ═══════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">📦</div>
+    <div>
+      <div class="brand-title">Retirados da Expedição</div>
+      <div class="brand-sub">SMG15 · Simões Filho</div>
+    </div>
   </div>
-  <div class="controls">
-    <div class="ctrl">
-      <span class="ctrl-icon">📅</span>
+  <div class="filters">
+    <div class="fpill">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       <input type="date" id="dateStart">
-      <span class="sep">–</span>
+      <span class="fsep">–</span>
       <input type="date" id="dateEnd">
     </div>
-    <div class="ctrl">
-      <span class="ctrl-icon">☀️</span>
+    <div class="fpill">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
       <select id="turno">
-        <option value="">TURNO</option>
-        <option value="1">Turno 1 (Manhã)</option>
-        <option value="2">Turno 2 (Tarde)</option>
+        <option value="">Todos os turnos</option>
+        <option value="1">Turno 1 · Manhã</option>
+        <option value="2">Turno 2 · Tarde</option>
       </select>
     </div>
+    <button class="btn-refresh" onclick="load()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Atualizar
+    </button>
   </div>
 </div>
 
+<!-- ═══ CONTENT ══════════════════════════════════════════════ -->
 <div class="content" id="content">
-  <div class="loading">Carregando…</div>
+  <div class="loader"><div class="spinner"></div><span>Carregando dados…</span></div>
 </div>
 
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwA9dZJ-10zXEyEMydxJuY4VPAam_V2VH8ETDAiUUQ50fqeR3LMAR6wa29Hr9gJD1kC/exec';
-// ─────────────────────────────────────────────────────────────
 
 Chart.register(ChartDataLabels);
 
-const PAGE = { modal: 1, motivos: 1, promises: 1 };
-const PS   = { modal: 10, motivos: 5, promises: 8 };
+const PAGE = {modal:1, motivos:1, promises:1};
+const PS   = {modal:8, motivos:5, promises:8};
 let DATA = null, barChart = null;
 
-function today() { return new Date().toISOString().split('T')[0]; }
-
+const today = () => new Date().toISOString().split('T')[0];
 document.getElementById('dateStart').value = today();
 document.getElementById('dateEnd').value   = today();
 
+// ── LOAD ─────────────────────────────────────────────────────
 async function load() {
   const start = document.getElementById('dateStart').value;
   const end   = document.getElementById('dateEnd').value;
   const turno = document.getElementById('turno').value;
   if (!start || !end) return;
 
-  document.getElementById('content').innerHTML = '<div class="loading">Carregando…</div>';
+  document.getElementById('content').innerHTML =
+    '<div class="loader"><div class="spinner"></div><span>Carregando dados…</span></div>';
 
   try {
-    const url = `${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`;
-    const r = await fetch(url);
-    const text = await r.text();
-    console.log('[retirados] resposta bruta:', text.substring(0, 500));
+    const res  = await fetch(`${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`);
+    const text = await res.text();
+    console.log('[retirados] raw:', text.slice(0, 400));
     DATA = JSON.parse(text);
     if (DATA.error) throw new Error(DATA.error);
-    // normaliza campos para evitar null/undefined
     DATA.total        = DATA.total        || 0;
     DATA.carriers     = DATA.carriers     || {};
     DATA.modals       = DATA.modals       || {};
@@ -146,210 +270,282 @@ async function load() {
     PAGE.modal = PAGE.motivos = PAGE.promises = 1;
     render();
   } catch(e) {
-    console.error('[retirados] erro:', e);
-    document.getElementById('content').innerHTML =
-      `<div class="error">Erro ao carregar dados: ${e.message}<br><small>Abra o Console do navegador (F12) para ver a resposta do servidor.</small></div>`;
+    console.error('[retirados]', e);
+    document.getElementById('content').innerHTML = `
+      <div class="err-box">
+        <strong>Erro ao carregar dados</strong>
+        ${e.message}<br>
+        <small>Abra o Console (F12) para ver a resposta do servidor.</small>
+      </div>`;
   }
 }
 
+// ── RENDER SHELL ─────────────────────────────────────────────
 function render() {
-  const el = document.getElementById('content');
-  el.innerHTML = `
-    <div class="row1">
+  document.getElementById('content').innerHTML = `
+    <div class="kpi-row" id="kpi-row"></div>
+    <div class="grid-a">
       <div class="card">
-        <div class="card-title">Quantidade Retirada por Transportadora</div>
+        <div class="card-head">
+          <span class="card-title">Quantidade Retirada por Transportadora</span>
+          <span class="card-badge" id="badge-carriers"></span>
+        </div>
         <div class="chart-wrap"><canvas id="barChart"></canvas></div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Retiradas por Modal</div>
-        <table>
-          <thead><tr><th>Tipo de Modal</th><th>Quantidade</th></tr></thead>
-          <tbody id="modal-body"></tbody>
-        </table>
-        <div class="pag" id="modal-pag"></div>
-      </div>
-
-      <div class="col-right">
-        <div class="card total-card">
-          <div class="total-label">Total de Retirados</div>
-          <div class="total-value">${DATA.total}</div>
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Retiradas por Modal</span>
+            <span class="card-badge" id="badge-modals"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Tipo de Modal</th><th>Qtd</th></tr></thead>
+            <tbody id="modal-body"></tbody></table>
+          </div>
+          <div class="pag" id="modal-pag"></div>
         </div>
         <div class="card">
-          <div class="card-title">Motivos Ofensores</div>
-          <table>
-            <thead><tr><th>Motivo</th><th>Quantidade</th></tr></thead>
-            <tbody id="motivos-body"></tbody>
-          </table>
+          <div class="card-head">
+            <span class="card-title">Motivos Ofensores</span>
+            <span class="card-badge" id="badge-motivos"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Motivo</th><th>Qtd</th></tr></thead>
+            <tbody id="motivos-body"></tbody></table>
+          </div>
           <div class="pag" id="motivos-pag"></div>
         </div>
       </div>
     </div>
-
-    <div class="row2">
+    <div class="grid-b">
       <div class="card">
-        <div class="card-title">Motivos Ofensores por Transportadora</div>
-        <div class="cross-wrap" id="cross-wrap"></div>
+        <div class="card-head">
+          <span class="card-title">Motivos Ofensores por Transportadora</span>
+        </div>
+        <div class="tbl-wrap" id="cross-wrap"></div>
       </div>
       <div class="card">
-        <div class="card-title">Data das Promessas</div>
-        <table>
-          <thead><tr><th>Promessas</th><th>Quantidade ↓</th></tr></thead>
-          <tbody id="promises-body"></tbody>
-        </table>
+        <div class="card-head">
+          <span class="card-title">Data das Promessas</span>
+          <span class="card-badge" id="badge-promises"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Data</th><th>Qtd ↓</th></tr></thead>
+          <tbody id="promises-body"></tbody></table>
+        </div>
         <div class="pag" id="promises-pag"></div>
       </div>
-    </div>
-  `;
+    </div>`;
 
+  renderKPIs();
   renderBar();
-  renderTablePage('modal-body',   'modal-pag',   DATA.modals,   'modal');
+  renderTable('modal-body',   'modal-pag',    'badge-modals',   DATA.modals,   'modal');
   renderMotivos();
   renderCross();
-  renderTablePage('promises-body','promises-pag', DATA.promises, 'promises');
+  renderTable('promises-body','promises-pag', 'badge-promises', DATA.promises, 'promises');
 }
 
-// ── Bar chart ──────────────────────────────────────────────
+// ── KPI CARDS ────────────────────────────────────────────────
+function renderKPIs() {
+  const ck = Object.keys(DATA.carriers),   cv = Object.values(DATA.carriers);
+  const mk = Object.keys(DATA.modals),     mv = Object.values(DATA.modals);
+  const ok = Object.keys(DATA.motivos),    ov = Object.values(DATA.motivos);
+  const topCarrier = ck[0] || '—', topCarrierN = cv[0] || 0;
+  const topModal   = mk[0] || '—', topModalN   = mv[0] || 0;
+  const topMotivo  = ok[0] || '—', topMotivoN  = ov[0] || 0;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-icon ic-red">📦</div>
+      <div class="kpi-label">Total Retirados</div>
+      <div class="kpi-value">${DATA.total.toLocaleString('pt-BR')}</div>
+      <div class="kpi-sub">${ck.length} transportadora${ck.length!==1?'s':''} · ${mk.length} modais</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ic-blue">🚚</div>
+      <div class="kpi-label">Maior Volume</div>
+      <div class="kpi-value">${topCarrierN}</div>
+      <div class="kpi-sub" title="${topCarrier}">${shortName(topCarrier)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ic-green">🚐</div>
+      <div class="kpi-label">Modal Principal</div>
+      <div class="kpi-value">${topModalN}</div>
+      <div class="kpi-sub" title="${topModal}">${trunc(topModal, 26)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ic-amber">⚠️</div>
+      <div class="kpi-label">Top Motivo Ofensor</div>
+      <div class="kpi-value">${topMotivoN || '—'}</div>
+      <div class="kpi-sub" title="${topMotivo}">${topMotivo==='—'?'Sem ocorrências':trunc(topMotivo,26)}</div>
+    </div>`;
+}
+
+// ── BAR CHART ────────────────────────────────────────────────
 function renderBar() {
   if (barChart) barChart.destroy();
   const labels = Object.keys(DATA.carriers);
   const values = Object.values(DATA.carriers);
+  const n = labels.length;
+  document.getElementById('badge-carriers').textContent = `${n} carrier${n!==1?'s':''}`;
+
+  if (!n) {
+    document.querySelector('.chart-wrap').innerHTML = '<div class="empty">Sem dados no período</div>';
+    return;
+  }
   barChart = new Chart(document.getElementById('barChart'), {
     type: 'bar',
     data: {
-      labels: labels.map(l => shortName(l)),
-      datasets: [{ label: 'Quantidade', data: values, backgroundColor: '#c8102e', borderRadius: 2 }]
+      labels: labels.map(shortName),
+      datasets: [{
+        label: 'Retiradas',
+        data: values,
+        backgroundColor: labels.map((_,i) => i===0 ? '#dc2626' : '#f87171'),
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-        datalabels: { anchor: 'end', align: 'top', font: { size: 12, weight: '600' }, color: '#333' }
+        legend: {display:false},
+        datalabels: {
+          anchor:'end', align:'top',
+          font:{size:12, weight:'700'},
+          color:'#0f172a',
+          formatter: v => v.toLocaleString('pt-BR')
+        }
       },
       scales: {
-        y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { font: { size: 11 } } },
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        y: {
+          beginAtZero: true,
+          grid: {color:'#f1f5f9'},
+          ticks: {font:{size:11}, color:'#94a3b8'},
+          border: {display:false}
+        },
+        x: {
+          grid: {display:false},
+          ticks: {font:{size:11}, color:'#64748b'},
+          border: {display:false}
+        }
       }
     }
   });
 }
 
-// ── Generic paginated table ────────────────────────────────
-function renderTablePage(tbodyId, pagId, obj, key) {
+// ── GENERIC TABLE ────────────────────────────────────────────
+function renderTable(tbodyId, pagId, badgeId, obj, key) {
   const entries = Object.entries(obj);
-  const total   = entries.length;
-  const ps      = PS[key];
-  const pg      = PAGE[key];
-  const slice   = entries.slice((pg-1)*ps, pg*ps);
+  const total = entries.length;
+  const ps = PS[key], pg = PAGE[key];
+  const slice = entries.slice((pg-1)*ps, pg*ps);
 
-  document.getElementById(tbodyId).innerHTML = slice.map(([k, v]) =>
-    `<tr><td>${k}</td><td>${v}</td></tr>`
+  if (badgeId) document.getElementById(badgeId).textContent = total;
+  if (!total) {
+    document.getElementById(tbodyId).innerHTML =
+      `<tr><td colspan="2" class="empty">Sem dados no período</td></tr>`;
+    document.getElementById(pagId).innerHTML = '';
+    return;
+  }
+  document.getElementById(tbodyId).innerHTML = slice.map(([k,v]) =>
+    `<tr><td><span class="trunc" title="${k}">${k}</span></td><td>${v.toLocaleString('pt-BR')}</td></tr>`
   ).join('');
-
   renderPag(pagId, total, ps, pg, key);
 }
 
-// ── Motivos with rank numbers ──────────────────────────────
+// ── MOTIVOS (ranked) ─────────────────────────────────────────
 function renderMotivos() {
   const entries = Object.entries(DATA.motivos);
-  const total   = entries.length;
-  const ps      = PS.motivos;
-  const pg      = PAGE.motivos;
-  const slice   = entries.slice((pg-1)*ps, pg*ps);
+  const total = entries.length;
+  const ps = PS.motivos, pg = PAGE.motivos;
+  const slice = entries.slice((pg-1)*ps, pg*ps);
 
-  document.getElementById('motivos-body').innerHTML = slice.map(([k, v], i) =>
-    `<tr>
-      <td><span class="rank">${(pg-1)*ps + i + 1}.</span><span class="trunc" title="${k}">${k}</span></td>
-      <td>${v}</td>
-    </tr>`
-  ).join('');
-
+  document.getElementById('badge-motivos').textContent = total;
+  if (!total) {
+    document.getElementById('motivos-body').innerHTML =
+      `<tr><td colspan="2" class="empty">Sem ocorrências</td></tr>`;
+    document.getElementById('motivos-pag').innerHTML = '';
+    return;
+  }
+  document.getElementById('motivos-body').innerHTML = slice.map(([k,v],i) => {
+    const n   = (pg-1)*ps + i + 1;
+    const cls = n===1?'r1':n===2?'r2':n===3?'r3':'rn';
+    return `<tr>
+      <td><span class="rank-badge ${cls}">${n}</span><span class="trunc" title="${k}" style="max-width:155px">${k}</span></td>
+      <td>${v.toLocaleString('pt-BR')}</td>
+    </tr>`;
+  }).join('');
   renderPag('motivos-pag', total, ps, pg, 'motivos');
 }
 
-// ── Cross table heatmap ────────────────────────────────────
+// ── CROSS HEATMAP ────────────────────────────────────────────
 function renderCross() {
-  const motivos  = Object.keys(DATA.mByCarrier);
+  const motivos = Object.keys(DATA.mByCarrier);
   if (!motivos.length) {
     document.getElementById('cross-wrap').innerHTML =
-      '<p style="color:#aaa;padding:12px">Sem dados de motivos no período.</p>';
+      '<div class="empty">Sem dados de motivos no período</div>';
     return;
   }
+  const count = {};
+  motivos.forEach(m =>
+    Object.entries(DATA.mByCarrier[m] || {}).forEach(([c,n]) => count[c] = (count[c]||0)+n)
+  );
+  const carriers = Object.keys(count).sort((a,b) => count[a]-count[b]);
+  const maxV = Math.max(...Object.values(count), 1);
+  const heat = v => !v?'h0':v<maxV*.2?'h1':v<maxV*.55?'h2':'h3';
 
-  // Carriers that appear in at least one motivo, ordered ascending by total count
-  const allCount = {};
-  motivos.forEach(m => Object.entries(DATA.mByCarrier[m] || {}).forEach(([c, n]) => {
-    allCount[c] = (allCount[c] || 0) + n;
-  }));
-  const carriers = Object.keys(allCount).sort((a, b) => allCount[a] - allCount[b]);
-
-  const allVals = Object.values(allCount);
-  const maxVal  = Math.max(...allVals, 1);
-
-  const heat = v => v === 0 ? 'h0' : v < maxVal*.2 ? 'h1' : v < maxVal*.55 ? 'h2' : 'h3';
-
-  const html = `
-    <table class="cross-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th class="group-header" colspan="${carriers.length}">TRANSPORTADORA / Record Count</th>
-        </tr>
-        <tr>
-          <th class="sub-header">MOTIVO</th>
-          ${carriers.map(c => `<th class="sub-header">${shortName(c)}</th>`).join('')}
-        </tr>
-      </thead>
+  document.getElementById('cross-wrap').innerHTML = `
+    <table class="heat-table">
+      <thead><tr>
+        <th>Motivo</th>
+        ${carriers.map(c=>`<th style="min-width:88px;text-align:center">${shortName(c)}</th>`).join('')}
+      </tr></thead>
       <tbody>
-        ${motivos.map(m => `
-          <tr>
-            <td><span class="trunc" title="${m}" style="max-width:190px">${m}</span></td>
-            ${carriers.map(c => {
-              const v = (DATA.mByCarrier[m][c] || 0);
-              return `<td class="${heat(v)}">${v > 0 ? v : '-'}</td>`;
-            }).join('')}
-          </tr>`).join('')}
+        ${motivos.map(m=>`<tr>
+          <td><span class="trunc" title="${m}" style="max-width:200px">${m}</span></td>
+          ${carriers.map(c=>{
+            const v=(DATA.mByCarrier[m]||{})[c]||0;
+            return `<td class="${heat(v)}">${v||'–'}</td>`;
+          }).join('')}
+        </tr>`).join('')}
       </tbody>
     </table>`;
-
-  document.getElementById('cross-wrap').innerHTML = html;
 }
 
-// ── Pagination control ─────────────────────────────────────
+// ── PAGINATION ───────────────────────────────────────────────
 function renderPag(id, total, ps, pg, key) {
-  const pages = Math.ceil(total / ps);
-  const s = (pg-1)*ps + 1, e = Math.min(pg*ps, total);
+  const pages = Math.ceil(total/ps);
+  const s = (pg-1)*ps+1, e = Math.min(pg*ps, total);
   document.getElementById(id).innerHTML = `
-    <span>${s} - ${e} / ${total}</span>
-    <button onclick="turnPage('${key}',-1)" ${pg<=1?'disabled':''}>‹</button>
-    <button onclick="turnPage('${key}', 1)" ${pg>=pages?'disabled':''}>›</button>`;
+    <span class="pag-info">${s}–${e} de ${total}</span>
+    <button class="pag-btn" onclick="turnPage('${key}',-1)" ${pg<=1?'disabled':''}>‹</button>
+    <button class="pag-btn" onclick="turnPage('${key}', 1)" ${pg>=pages?'disabled':''}>›</button>`;
 }
-
-window.turnPage = function(key, dir) {
+window.turnPage = (key, dir) => {
   PAGE[key] += dir;
-  if (key === 'modal')    renderTablePage('modal-body',   'modal-pag',   DATA.modals,   'modal');
-  if (key === 'motivos')  renderMotivos();
-  if (key === 'promises') renderTablePage('promises-body','promises-pag', DATA.promises, 'promises');
+  if (key==='modal')    renderTable('modal-body',   'modal-pag',   'badge-modals',   DATA.modals,   'modal');
+  if (key==='motivos')  renderMotivos();
+  if (key==='promises') renderTable('promises-body','promises-pag','badge-promises', DATA.promises, 'promises');
 };
 
-// ── Short name map ─────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────
 const SHORT = {
-  'HAWK TRANSPORTES LTDA': 'HAWK',
-  'EXPRESSO NEPOMUCENO SA': 'NEPOMUCENO',
-  'DELUNA SERVICOS DE TRANSPORTES EIRELI': 'DELUNA',
-  'COOPERATIVA DOIS TRANSPORTADORES AUTÔNOMOS DE CARGA E PASSAGEIROS': 'COOPERATIVA',
-  'MICHELL FERREIRA VITORINO ME': 'MICHELL',
-  'ECO EXPRESS SERVICOS SUSTENTAVEIS LTDA': 'ECO EXPRESS',
-  'dhlbr': 'DHL',
-  'Kangu': 'KANGU',
+  'HAWK TRANSPORTES LTDA':'HAWK',
+  'EXPRESSO NEPOMUCENO SA':'NEPOMUCENO',
+  'DELUNA SERVICOS DE TRANSPORTES EIRELI':'DELUNA',
+  'COOPERATIVA DOIS TRANSPORTADORES AUTÔNOMOS DE CARGA E PASSAGEIROS':'COOPERATIVA',
+  'MICHELL FERREIRA VITORINO ME':'MICHELL',
+  'ECO EXPRESS SERVICOS SUSTENTAVEIS LTDA':'ECO EXPRESS',
+  'dhlbr':'DHL',
+  'Kangu':'KANGU',
 };
-function shortName(n) { return SHORT[n] || n; }
+const shortName = n => SHORT[n] || n;
+const trunc = (s, n) => s.length>n ? s.slice(0,n-1)+'…' : s;
 
-// ── Event listeners ────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 document.getElementById('dateStart').addEventListener('change', load);
 document.getElementById('dateEnd').addEventListener('change', load);
 document.getElementById('turno').addEventListener('change', load);
-
 load();
 </script>
 </body>
