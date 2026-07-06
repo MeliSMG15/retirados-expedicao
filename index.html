@@ -108,12 +108,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 }
 
 /* ── LAYOUT GRIDS ───────────────────────────────── */
-.grid-a{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start}
-.grid-b{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
+.grid-a{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:stretch}
+.grid-b{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
 .col{display:flex;flex-direction:column;gap:20px}
+/* chart card must flex so chart fills the height of the right column */
+.grid-a>.card{display:flex;flex-direction:column}
+.grid-a>.card .card-head{flex-shrink:0}
 
 /* ── CHART ──────────────────────────────────────── */
-.chart-wrap{height:268px;padding:16px 18px;position:relative}
+.chart-wrap{flex:1;min-height:260px;padding:16px 18px 24px;position:relative}
 
 /* ── TABLES ─────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto}
@@ -362,36 +365,37 @@ function render() {
 
 // ── KPI CARDS ────────────────────────────────────────────────
 function renderKPIs() {
-  const ck = Object.keys(DATA.carriers),   cv = Object.values(DATA.carriers);
-  const mk = Object.keys(DATA.modals),     mv = Object.values(DATA.modals);
-  const ok = Object.keys(DATA.motivos),    ov = Object.values(DATA.motivos);
-  const topCarrier = ck[0] || '—', topCarrierN = cv[0] || 0;
-  const topModal   = mk[0] || '—', topModalN   = mv[0] || 0;
-  const topMotivo  = ok[0] || '—', topMotivoN  = ov[0] || 0;
+  const mk = Object.keys(DATA.modals),  mv = Object.values(DATA.modals);
+  const ok = Object.keys(DATA.motivos), ov = Object.values(DATA.motivos);
+  const rk = Object.keys(DATA.rotas),   rv = Object.values(DATA.rotas);
+  const ck = Object.keys(DATA.carriers);
+  const topModal  = mk[0] || '—', topModalN  = mv[0] || 0;
+  const topMotivo = ok[0] || '—', topMotivoN = ov[0] || 0;
+  const topRota   = rk[0] || '—', topRotaN   = rv[0] || 0;
 
   document.getElementById('kpi-row').innerHTML = `
     <div class="kpi-card">
       <div class="kpi-icon ic-red">📦</div>
       <div class="kpi-label">Total Retirados</div>
       <div class="kpi-value">${DATA.total.toLocaleString('pt-BR')}</div>
-      <div class="kpi-sub">${ck.length} transportadora${ck.length!==1?'s':''} · ${mk.length} modais</div>
+      <div class="kpi-sub">${ck.length} transportadora${ck.length!==1?'s':''} · ${rk.length} rota${rk.length!==1?'s':''}</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-icon ic-blue">🚚</div>
-      <div class="kpi-label">Maior Volume</div>
-      <div class="kpi-value">${topCarrierN}</div>
-      <div class="kpi-sub" title="${topCarrier}">${shortName(topCarrier)}</div>
+      <div class="kpi-icon ic-blue">🛣️</div>
+      <div class="kpi-label">Top Rota</div>
+      <div class="kpi-value">${topRotaN.toLocaleString('pt-BR')}</div>
+      <div class="kpi-sub" title="${topRota}">${trunc(topRota, 26)}</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon ic-green">🚐</div>
       <div class="kpi-label">Modal Principal</div>
-      <div class="kpi-value">${topModalN}</div>
+      <div class="kpi-value">${topModalN.toLocaleString('pt-BR')}</div>
       <div class="kpi-sub" title="${topModal}">${trunc(topModal, 26)}</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon ic-amber">⚠️</div>
       <div class="kpi-label">Top Motivo Ofensor</div>
-      <div class="kpi-value">${topMotivoN || '—'}</div>
+      <div class="kpi-value">${topMotivoN ? topMotivoN.toLocaleString('pt-BR') : '—'}</div>
       <div class="kpi-sub" title="${topMotivo}">${topMotivo==='—'?'Sem ocorrências':trunc(topMotivo,26)}</div>
     </div>`;
 }
@@ -440,7 +444,16 @@ function renderBar() {
         },
         x: {
           grid: {display:false},
-          ticks: {font:{size:11}, color:'#64748b'},
+          ticks: {
+            font:{size:10}, color:'#64748b',
+            autoSkip: false,
+            maxRotation: 40,
+            minRotation: 0,
+            callback: function(val, idx) {
+              const lbl = this.getLabelForValue(val);
+              return lbl.length > 14 ? lbl.slice(0, 13) + '…' : lbl;
+            }
+          },
           border: {display:false}
         }
       }
