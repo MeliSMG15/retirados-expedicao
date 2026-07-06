@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retirados da Expedição SMG15</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-size:13px}
+
+  /* ── Header ── */
+  .header{background:#fff;border-bottom:1px solid #ddd;padding:14px 24px;display:flex;align-items:center;gap:20px}
+  .header-title{display:flex;align-items:center;gap:12px;flex:1}
+  .header-title .icon{font-size:34px;line-height:1}
+  .header-title h1{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;line-height:1.2}
+  .controls{display:flex;align-items:center;gap:12px}
+  .ctrl{display:flex;align-items:center;gap:7px;border:1px solid #ccc;border-radius:4px;padding:7px 12px;background:#fff}
+  .ctrl-icon{font-size:16px;color:#555}
+  .ctrl input,.ctrl select{border:none;outline:none;font-size:13px;background:transparent;cursor:pointer;color:#333}
+  .ctrl span.sep{color:#aaa}
+
+  /* ── Layout ── */
+  .content{padding:18px 24px;display:flex;flex-direction:column;gap:16px}
+  .row1{display:grid;grid-template-columns:1fr 1fr 280px;gap:16px;align-items:start}
+  .row2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start}
+  .col-right{display:flex;flex-direction:column;gap:16px}
+
+  /* ── Cards ── */
+  .card{background:#fff;border-radius:6px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px;color:#111}
+
+  /* ── Chart ── */
+  .chart-wrap{position:relative;height:250px}
+
+  /* ── Tables ── */
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#2c2c2c;color:#fff;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+  thead th:last-child{text-align:right}
+  tbody td{padding:7px 10px;border-bottom:1px solid #f2f2f2;font-size:13px}
+  tbody td:last-child{text-align:right}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:#fafafa}
+  .rank{color:#999;margin-right:4px;font-size:12px}
+  .trunc{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+
+  /* ── Total card ── */
+  .total-card{text-align:center;padding:22px 16px}
+  .total-label{font-size:14px;color:#666;margin-bottom:6px}
+  .total-value{font-size:52px;font-weight:300;color:#222;line-height:1}
+
+  /* ── Cross table heatmap ── */
+  .cross-wrap{overflow-x:auto}
+  .cross-table{width:100%}
+  .cross-table thead th{text-align:center}
+  .cross-table thead th:first-child{text-align:left}
+  .cross-table thead th.group-header{background:#1a1a1a;font-size:10px;padding:5px 8px}
+  .cross-table thead th.sub-header{background:#444;font-size:11px;padding:7px 8px}
+  .cross-table tbody td{text-align:center;font-weight:500;font-size:13px}
+  .cross-table tbody td:first-child{text-align:left;font-size:12px;max-width:200px}
+  .h0{background:#fff;color:#bbb}
+  .h1{background:#fce8e8;color:#555}
+  .h2{background:#f5a0a0;color:#333}
+  .h3{background:#e02020;color:#fff;font-weight:700}
+
+  /* ── Pagination ── */
+  .pag{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#666}
+  .pag button{border:1px solid #ddd;background:#fff;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:13px;color:#444}
+  .pag button:disabled{opacity:.35;cursor:default}
+
+  /* ── States ── */
+  .loading{text-align:center;padding:60px;color:#888;font-size:14px}
+  .error{text-align:center;padding:40px;color:#c00;font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- ═══ Header ═══ -->
+<div class="header">
+  <div class="header-title">
+    <span class="icon">📦</span>
+    <h1>Retirados da<br>Expedição SMG15</h1>
+  </div>
+  <div class="controls">
+    <div class="ctrl">
+      <span class="ctrl-icon">📅</span>
+      <input type="date" id="dateStart">
+      <span class="sep">–</span>
+      <input type="date" id="dateEnd">
+    </div>
+    <div class="ctrl">
+      <span class="ctrl-icon">☀️</span>
+      <select id="turno">
+        <option value="">TURNO</option>
+        <option value="1">Turno 1 (Manhã)</option>
+        <option value="2">Turno 2 (Tarde)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="content">
+  <div class="loading">Carregando…</div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwA9dZJ-10zXEyEMydxJuY4VPAam_V2VH8ETDAiUUQ50fqeR3LMAR6wa29Hr9gJD1kC/exec';
+// ─────────────────────────────────────────────────────────────
+
+Chart.register(ChartDataLabels);
+
+const PAGE = { modal: 1, motivos: 1, promises: 1 };
+const PS   = { modal: 10, motivos: 5, promises: 8 };
+let DATA = null, barChart = null;
+
+function today() { return new Date().toISOString().split('T')[0]; }
+
+document.getElementById('dateStart').value = today();
+document.getElementById('dateEnd').value   = today();
+
+async function load() {
+  const start = document.getElementById('dateStart').value;
+  const end   = document.getElementById('dateEnd').value;
+  const turno = document.getElementById('turno').value;
+  if (!start || !end) return;
+
+  document.getElementById('content').innerHTML = '<div class="loading">Carregando…</div>';
+
+  try {
+    const url = `${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`;
+    const r = await fetch(url);
+    DATA = await r.json();
+    if (DATA.error) throw new Error(DATA.error);
+    PAGE.modal = PAGE.motivos = PAGE.promises = 1;
+    render();
+  } catch(e) {
+    document.getElementById('content').innerHTML =
+      `<div class="error">Erro ao carregar dados: ${e.message}<br><small>Verifique se o Apps Script foi publicado e a URL está configurada.</small></div>`;
+  }
+}
+
+function render() {
+  const el = document.getElementById('content');
+  el.innerHTML = `
+    <div class="row1">
+      <div class="card">
+        <div class="card-title">Quantidade Retirada por Transportadora</div>
+        <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Retiradas por Modal</div>
+        <table>
+          <thead><tr><th>Tipo de Modal</th><th>Quantidade</th></tr></thead>
+          <tbody id="modal-body"></tbody>
+        </table>
+        <div class="pag" id="modal-pag"></div>
+      </div>
+
+      <div class="col-right">
+        <div class="card total-card">
+          <div class="total-label">Total de Retirados</div>
+          <div class="total-value">${DATA.total}</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Motivos Ofensores</div>
+          <table>
+            <thead><tr><th>Motivo</th><th>Quantidade</th></tr></thead>
+            <tbody id="motivos-body"></tbody>
+          </table>
+          <div class="pag" id="motivos-pag"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-title">Motivos Ofensores por Transportadora</div>
+        <div class="cross-wrap" id="cross-wrap"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Data das Promessas</div>
+        <table>
+          <thead><tr><th>Promessas</th><th>Quantidade ↓</th></tr></thead>
+          <tbody id="promises-body"></tbody>
+        </table>
+        <div class="pag" id="promises-pag"></div>
+      </div>
+    </div>
+  `;
+
+  renderBar();
+  renderTablePage('modal-body',   'modal-pag',   DATA.modals,   'modal');
+  renderMotivos();
+  renderCross();
+  renderTablePage('promises-body','promises-pag', DATA.promises, 'promises');
+}
+
+// ── Bar chart ──────────────────────────────────────────────
+function renderBar() {
+  if (barChart) barChart.destroy();
+  const labels = Object.keys(DATA.carriers);
+  const values = Object.values(DATA.carriers);
+  barChart = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: labels.map(l => shortName(l)),
+      datasets: [{ label: 'Quantidade', data: values, backgroundColor: '#c8102e', borderRadius: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        datalabels: { anchor: 'end', align: 'top', font: { size: 12, weight: '600' }, color: '#333' }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Generic paginated table ────────────────────────────────
+function renderTablePage(tbodyId, pagId, obj, key) {
+  const entries = Object.entries(obj);
+  const total   = entries.length;
+  const ps      = PS[key];
+  const pg      = PAGE[key];
+  const slice   = entries.slice((pg-1)*ps, pg*ps);
+
+  document.getElementById(tbodyId).innerHTML = slice.map(([k, v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`
+  ).join('');
+
+  renderPag(pagId, total, ps, pg, key);
+}
+
+// ── Motivos with rank numbers ──────────────────────────────
+function renderMotivos() {
+  const entries = Object.entries(DATA.motivos);
+  const total   = entries.length;
+  const ps      = PS.motivos;
+  const pg      = PAGE.motivos;
+  const slice   = entries.slice((pg-1)*ps, pg*ps);
+
+  document.getElementById('motivos-body').innerHTML = slice.map(([k, v], i) =>
+    `<tr>
+      <td><span class="rank">${(pg-1)*ps + i + 1}.</span><span class="trunc" title="${k}">${k}</span></td>
+      <td>${v}</td>
+    </tr>`
+  ).join('');
+
+  renderPag('motivos-pag', total, ps, pg, 'motivos');
+}
+
+// ── Cross table heatmap ────────────────────────────────────
+function renderCross() {
+  const motivos  = Object.keys(DATA.mByCarrier);
+  if (!motivos.length) {
+    document.getElementById('cross-wrap').innerHTML =
+      '<p style="color:#aaa;padding:12px">Sem dados de motivos no período.</p>';
+    return;
+  }
+
+  // Carriers that appear in at least one motivo, ordered ascending by total count
+  const allCount = {};
+  motivos.forEach(m => Object.entries(DATA.mByCarrier[m]).forEach(([c, n]) => {
+    allCount[c] = (allCount[c] || 0) + n;
+  }));
+  const carriers = Object.keys(allCount).sort((a, b) => allCount[a] - allCount[b]);
+
+  const allVals = Object.values(allCount);
+  const maxVal  = Math.max(...allVals, 1);
+
+  const heat = v => v === 0 ? 'h0' : v < maxVal*.2 ? 'h1' : v < maxVal*.55 ? 'h2' : 'h3';
+
+  const html = `
+    <table class="cross-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="group-header" colspan="${carriers.length}">TRANSPORTADORA / Record Count</th>
+        </tr>
+        <tr>
+          <th class="sub-header">MOTIVO</th>
+          ${carriers.map(c => `<th class="sub-header">${shortName(c)}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${motivos.map(m => `
+          <tr>
+            <td><span class="trunc" title="${m}" style="max-width:190px">${m}</span></td>
+            ${carriers.map(c => {
+              const v = (DATA.mByCarrier[m][c] || 0);
+              return `<td class="${heat(v)}">${v > 0 ? v : '-'}</td>`;
+            }).join('')}
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  document.getElementById('cross-wrap').innerHTML = html;
+}
+
+// ── Pagination control ─────────────────────────────────────
+function renderPag(id, total, ps, pg, key) {
+  const pages = Math.ceil(total / ps);
+  const s = (pg-1)*ps + 1, e = Math.min(pg*ps, total);
+  document.getElementById(id).innerHTML = `
+    <span>${s} - ${e} / ${total}</span>
+    <button onclick="turnPage('${key}',-1)" ${pg<=1?'disabled':''}>‹</button>
+    <button onclick="turnPage('${key}', 1)" ${pg>=pages?'disabled':''}>›</button>`;
+}
+
+window.turnPage = function(key, dir) {
+  PAGE[key] += dir;
+  if (key === 'modal')    renderTablePage('modal-body',   'modal-pag',   DATA.modals,   'modal');
+  if (key === 'motivos')  renderMotivos();
+  if (key === 'promises') renderTablePage('promises-body','promises-pag', DATA.promises, 'promises');
+};
+
+// ── Short name map ─────────────────────────────────────────
+const SHORT = {
+  'HAWK TRANSPORTES LTDA': 'HAWK',
+  'EXPRESSO NEPOMUCENO SA': 'NEPOMUCENO',
+  'DELUNA SERVICOS DE TRANSPORTES EIRELI': 'DELUNA',
+  'COOPERATIVA DOIS TRANSPORTADORES AUTÔNOMOS DE CARGA E PASSAGEIROS': 'COOPERATIVA',
+  'MICHELL FERREIRA VITORINO ME': 'MICHELL',
+  'ECO EXPRESS SERVICOS SUSTENTAVEIS LTDA': 'ECO EXPRESS',
+  'dhlbr': 'DHL',
+  'Kangu': 'KANGU',
+};
+function shortName(n) { return SHORT[n] || n; }
+
+// ── Event listeners ────────────────────────────────────────
+document.getElementById('dateStart').addEventListener('change', load);
+document.getElementById('dateEnd').addEventListener('change', load);
+document.getElementById('turno').addEventListener('change', load);
+
+load();
+</script>
+</body>
+</html>
