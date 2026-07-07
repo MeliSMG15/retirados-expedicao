@@ -147,8 +147,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 }
 
 /* ═══ LAYOUT ══════════════════════════════════════════ */
-.grid-a{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:stretch}
-.grid-b{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start}
+.grid-a{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:stretch}
+.grid-c{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
 .col{display:flex;flex-direction:column;gap:22px}
 .grid-a>.card{display:flex;flex-direction:column}
 .grid-a>.card .card-head{flex-shrink:0}
@@ -486,36 +486,37 @@ function render() {
       </div>
     </div>
 
-    <div class="grid-b">
+    <!-- Heatmap full-width -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Motivos Ofensores por Transportadora</span>
+      </div>
+      <div class="tbl-wrap" id="cross-wrap"></div>
+    </div>
+
+    <!-- Promises + Rotas side-by-side -->
+    <div class="grid-c">
       <div class="card">
         <div class="card-head">
-          <span class="card-title">Motivos Ofensores por Transportadora</span>
+          <span class="card-title">Data das Promessas</span>
+          <span class="card-badge" id="badge-promises"></span>
         </div>
-        <div class="tbl-wrap" id="cross-wrap"></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Data</th><th>Qtd ↓</th></tr></thead>
+          <tbody id="promises-body"></tbody></table>
+        </div>
+        <div class="pag" id="promises-pag"></div>
       </div>
-      <div class="col">
-        <div class="card">
-          <div class="card-head">
-            <span class="card-title">Data das Promessas</span>
-            <span class="card-badge" id="badge-promises"></span>
-          </div>
-          <div class="tbl-wrap">
-            <table><thead><tr><th>Data</th><th>Qtd ↓</th></tr></thead>
-            <tbody id="promises-body"></tbody></table>
-          </div>
-          <div class="pag" id="promises-pag"></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Retiradas por Rota</span>
+          <span class="card-badge" id="badge-rotas"></span>
         </div>
-        <div class="card">
-          <div class="card-head">
-            <span class="card-title">Retiradas por Rota</span>
-            <span class="card-badge" id="badge-rotas"></span>
-          </div>
-          <div class="tbl-wrap">
-            <table><thead><tr><th>Rota</th><th>Qtd ↓</th></tr></thead>
-            <tbody id="rotas-body"></tbody></table>
-          </div>
-          <div class="pag" id="rotas-pag"></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Rota</th><th>Qtd ↓</th></tr></thead>
+          <tbody id="rotas-body"></tbody></table>
         </div>
+        <div class="pag" id="rotas-pag"></div>
       </div>
     </div>
 
