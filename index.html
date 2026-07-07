@@ -223,6 +223,43 @@ tbody tr:last-child td{border-bottom:none}
 .pag-btn:hover:not(:disabled){background:var(--brand);color:#fff;border-color:var(--brand);transform:scale(1.05)}
 .pag-btn:disabled{opacity:.3;cursor:default}
 
+/* ═══ RISK CARD ════════════════════════════════════════ */
+.risk-card{
+  background:#fff;border-radius:var(--radius);
+  border:2px solid #fecaca;
+  box-shadow:0 4px 20px rgba(229,39,42,.1);
+  overflow:hidden;animation:fadeUp .35s ease both;
+}
+.risk-card-head{
+  background:linear-gradient(135deg,#dc2626,#b91c1c);
+  padding:16px 22px;display:flex;align-items:center;gap:14px;
+}
+.risk-card-head-icon{font-size:22px}
+.risk-card-head-text{flex:1}
+.risk-card-head-title{color:#fff;font-size:14px;font-weight:700;letter-spacing:.2px}
+.risk-card-head-sub{color:rgba(255,255,255,.75);font-size:12px;margin-top:2px}
+.risk-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  border-bottom:1px solid #fee2e2;
+}
+.risk-stat{
+  padding:16px 22px;text-align:center;
+  border-right:1px solid #fee2e2;
+}
+.risk-stat:last-child{border-right:none}
+.risk-stat-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.risk-stat-value{font-size:28px;font-weight:800;line-height:1.1;margin-top:4px;letter-spacing:-1px}
+.risk-stat-value.danger{color:#dc2626}
+.risk-stat-value.warn{color:#d97706}
+.risk-stat-value.ok{color:#059669}
+.risk-tbl thead th{background:linear-gradient(180deg,#fff5f5,#fff1f2)}
+.risk-tbl tbody tr:hover td{background:#fff5f5 !important}
+.risk-empty{
+  padding:32px;text-align:center;
+  color:#16a34a;font-size:14px;font-weight:600;
+}
+.risk-empty::before{display:block;font-size:32px;margin-bottom:8px;content:'✅'}
+
 /* ═══ DETAILS TABLE ════════════════════════════════════ */
 .details-toolbar{
   padding:14px 20px;border-bottom:1px solid var(--border-lt);
@@ -525,6 +562,19 @@ function render() {
       </div>
     </div>
 
+    <!-- RISK OF THE DAY -->
+    <div class="risk-card" id="risk-card">
+      <div class="risk-card-head">
+        <div class="risk-card-head-icon">🚨</div>
+        <div class="risk-card-head-text">
+          <div class="risk-card-head-title">Risco do Dia — Promessas Comprometidas</div>
+          <div class="risk-card-head-sub" id="risk-card-sub">Pacotes com promessa para hoje que foram retirados da rota</div>
+        </div>
+        <span id="risk-badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px"></span>
+      </div>
+      <div id="risk-body"></div>
+    </div>
+
     <!-- AI ANALYSIS -->
     <div class="card" id="ai-card" style="display:none">
       <div class="card-head">
@@ -577,6 +627,7 @@ function render() {
 
   renderKPIs();
   renderFinancials();
+  renderRisk();
   renderBar();
   renderTable('modal-body',   'modal-pag',   'badge-modals',   DATA.modals,   'modal');
   renderMotivos();
@@ -665,6 +716,77 @@ function renderFinancials(reincRisk = null) {
       <div class="kpi-header"><div class="kpi-icon ic-amber">🔄</div></div>
       <div class="kpi-label">Valor em Risco (Reincid.)</div>
       ${riskHtml}
+    </div>`;
+}
+
+// ── RISK OF THE DAY ──────────────────────────────────────────
+function renderRisk() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const items    = DATA.details.filter(d => d.promise === todayStr);
+  const body     = document.getElementById('risk-body');
+  const badge    = document.getElementById('risk-badge');
+  const sub      = document.getElementById('risk-card-sub');
+  if (!body) return;
+
+  badge.textContent = `${items.length} pacote${items.length !== 1 ? 's' : ''}`;
+
+  if (!items.length) {
+    sub.textContent  = `Nenhum pacote com promessa para ${fmtDate(todayStr)} foi retirado`;
+    body.innerHTML   = `<div class="risk-empty">Nenhum pacote com promessa para hoje foi retirado da rota</div>`;
+    return;
+  }
+
+  const totalBrl = items.reduce((s, d) => s + (d.valBrl || 0), 0);
+  const totalUsd = items.reduce((s, d) => s + (d.valUsd || 0), 0);
+
+  // agrupado por transportadora
+  const byCarrier = {};
+  items.forEach(d => { byCarrier[d.carrier] = (byCarrier[d.carrier] || 0) + 1; });
+  const topCarrier = Object.entries(byCarrier).sort((a,b) => b[1]-a[1])[0];
+
+  sub.textContent = `${items.length} pacote${items.length!==1?'s':''} com promessa para ${fmtDate(todayStr)} retirado${items.length!==1?'s':''} da rota`;
+
+  body.innerHTML = `
+    <div class="risk-summary">
+      <div class="risk-stat">
+        <div class="risk-stat-label">Pacotes em risco</div>
+        <div class="risk-stat-value danger">${items.length}</div>
+      </div>
+      <div class="risk-stat">
+        <div class="risk-stat-label">Valor em R$</div>
+        <div class="risk-stat-value ${totalBrl > 0 ? 'danger' : 'ok'}">
+          ${totalBrl > 0 ? 'R$ '+totalBrl.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}
+        </div>
+      </div>
+      <div class="risk-stat">
+        <div class="risk-stat-label">Principal transportadora</div>
+        <div class="risk-stat-value warn" style="font-size:16px;margin-top:8px">${topCarrier ? shortName(topCarrier[0])+' ('+topCarrier[1]+')' : '—'}</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="risk-tbl">
+        <thead><tr>
+          <th>#</th><th>ID / OBJECT_ID</th><th>Transportadora</th>
+          <th>Rota</th><th>Modal</th><th>Turno</th><th>Motivo</th>
+          <th>USD</th><th>R$</th>
+        </tr></thead>
+        <tbody>
+          ${items.map((d, i) => {
+            const tCls = d.turno==='AM'?'turno-am':'turno-pm';
+            return `<tr>
+              <td style="color:var(--muted);text-align:right">${i+1}</td>
+              <td><code style="font-size:11px;background:#fff1f2;color:#dc2626;padding:2px 6px;border-radius:5px;font-family:monospace">${d.id||'—'}</code></td>
+              <td><span class="trunc" style="max-width:150px" title="${d.carrier}">${shortName(d.carrier)}</span></td>
+              <td><span class="trunc" style="max-width:110px" title="${d.rota}">${d.rota}</span></td>
+              <td>${d.modal}</td>
+              <td><span class="${tCls}">${d.turno}</span></td>
+              <td><span class="trunc" style="max-width:140px" title="${d.motivo}">${d.motivo||'—'}</span></td>
+              <td style="color:#0284c7;font-variant-numeric:tabular-nums">${d.valUsd ? '$ '+d.valUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+              <td style="color:#dc2626;font-variant-numeric:tabular-nums;font-weight:700">${d.valBrl ? 'R$ '+d.valBrl.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
     </div>`;
 }
 
