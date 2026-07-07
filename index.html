@@ -380,8 +380,9 @@ const PAGE = { modal:1, motivos:1, promises:1, rotas:1, details:1 };
 const PS   = { modal:8, motivos:5, promises:8, rotas:8, details:20 };
 
 let DATA = null, barChart = null;
-let REINC_MAP = {};  // objectId → [date1, date2, ...]
+let REINC_MAP = {};
 let db = null, fbReady = false;
+let autoSavedToday = false;
 
 // ── FIREBASE ─────────────────────────────────────────────────
 const firebaseConfig = {
@@ -435,7 +436,8 @@ async function load() {
     REINC_MAP = {};
 
     render();
-    loadReincidence();   // async, updates table when ready
+    loadReincidence();
+    checkAutoSave();
   } catch(e) {
     console.error('[retirados]', e);
     document.getElementById('content').innerHTML = `
@@ -566,16 +568,7 @@ function render() {
       <div class="pag" id="details-pag"></div>
     </div>
 
-    <!-- HISTORY -->
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">📅 Histórico Salvo</span>
-        <span class="card-badge" id="badge-history">carregando…</span>
-      </div>
-      <div id="history-body">
-        <div class="empty">Carregando histórico…</div>
-      </div>
-    </div>`;
+`;
 
   renderKPIs();
   renderBar();
@@ -585,7 +578,6 @@ function render() {
   renderTable('promises-body','promises-pag','badge-promises', DATA.promises, 'promises');
   renderTable('rotas-body',   'rotas-pag',   'badge-rotas',    DATA.rotas,    'rotas');
   renderDetails();
-  loadHistory();
 }
 
 // ── KPI CARDS ────────────────────────────────────────────────
@@ -820,89 +812,76 @@ function downloadCSV() {
 }
 
 // ── FIREBASE SAVE ────────────────────────────────────────────
-async function saveHistory() {
-  if (!DATA) return showToast('Carregue dados primeiro.', 'error');
-  if (!fbReady) return showToast('Firebase não pronto, aguarde.', 'error');
+async function saveHistory(silent = false) {
+  if (!DATA) { if (!silent) showToast('Carregue dados primeiro.', 'error'); return; }
+  if (!fbReady) { if (!silent) showToast('Firebase não pronto, aguarde.', 'error'); return; }
 
-  const btn = document.getElementById('btnSave');
-  btn.disabled = true;
-  btn.classList.add('saving');
-  btn.innerHTML = '<span class="spinner-sm"></span> Salvando…';
+  const btn  = document.getElementById('btnSave');
+  const date = document.getElementById('dateStart').value;
 
-  const date  = document.getElementById('dateStart').value;
-  const turno = document.getElementById('turno').value || 'all';
+  if (!silent) {
+    btn.disabled = true;
+    btn.classList.add('saving');
+    btn.innerHTML = '<span class="spinner-sm"></span> Salvando…';
+  }
 
   try {
-    // Salva resumo do dia
     await db.ref(`${FB_NODE}/history/${date}`).update({
       savedAt  : firebase.database.ServerValue.TIMESTAMP,
       total    : DATA.total,
-      turno    : turno,
       carriers : DATA.carriers,
       modals   : DATA.modals,
       motivos  : DATA.motivos,
       rotas    : DATA.rotas
     });
 
-    // Atualiza índice de reincidência (id → {data: turno})
     const updates = {};
     DATA.details.forEach(item => {
       if (!item.id) return;
       const safeId = item.id.toString().replace(/[.#$\[\]/]/g, '_');
-      updates[`${FB_NODE}/id_index/${safeId}/${date}`] = turno || 'all';
+      updates[`${FB_NODE}/id_index/${safeId}/${date}`] = 'saved';
     });
     if (Object.keys(updates).length) await db.ref().update(updates);
 
-    showToast(`✓ ${DATA.total} pacotes salvos para ${date}`, 'success');
-    loadHistory();
+    if (silent) {
+      showToast(`💾 Auto-salvo: ${DATA.total} pacotes de ${date}`);
+    } else {
+      showToast(`✓ ${DATA.total} pacotes salvos para ${date}`, 'success');
+    }
   } catch (err) {
     console.error('[FB save]', err);
-    showToast('Erro ao salvar: ' + err.message, 'error');
+    if (!silent) showToast('Erro ao salvar: ' + err.message, 'error');
   } finally {
-    btn.disabled = false;
-    btn.classList.remove('saving');
-    btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Histórico`;
+    if (!silent) {
+      btn.disabled = false;
+      btn.classList.remove('saving');
+      btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Histórico`;
+    }
   }
 }
 
-// ── LOAD HISTORY ─────────────────────────────────────────────
-async function loadHistory() {
-  if (!fbReady) return;
-  try {
-    const snap = await db.ref(`${FB_NODE}/history`).once('value');
-    const hist = snap.val() || {};
-    const days = Object.keys(hist).sort().reverse();
-
-    const badge = document.getElementById('badge-history');
-    const body  = document.getElementById('history-body');
-    if (!badge || !body) return;
-
-    badge.textContent = `${days.length} dias`;
-    if (!days.length) {
-      body.innerHTML = '<div class="empty">Nenhum histórico salvo ainda.</div>';
-      return;
-    }
-
-    body.innerHTML = `<div class="history-grid">
-      ${days.map(d => {
-        const h = hist[d];
-        const topC = Object.keys(h.carriers||{})[0] || '—';
-        return `<div class="hist-day" onclick="loadDay('${d}')">
-          <div class="hist-day-date">${fmtDate(d)}</div>
-          <div class="hist-day-total">${(h.total||0).toLocaleString('pt-BR')}</div>
-          <div class="hist-day-meta">${shortName(topC)} · ${h.turno||'all'}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-  } catch(e) { console.warn('[hist]', e); }
+// ── AUTO-SAVE ─────────────────────────────────────────────────
+function checkAutoSave() {
+  const h = new Date().getHours();
+  if (h >= 20 && !autoSavedToday && DATA && DATA.total > 0) {
+    autoSavedToday = true;
+    setTimeout(() => saveHistory(true), 1500);
+  }
 }
 
-function loadDay(date) {
-  document.getElementById('dateStart').value = date;
-  document.getElementById('dateEnd').value   = date;
-  document.getElementById('turno').value     = '';
-  load();
-  window.scrollTo({top:0,behavior:'smooth'});
+function scheduleAutoSave() {
+  const now    = new Date();
+  const target = new Date();
+  target.setHours(20, 0, 5, 0);
+  if (target <= now) return; // já passou das 20h hoje — checkAutoSave cuida
+  const ms = target - now;
+  setTimeout(() => {
+    if (DATA && DATA.total > 0 && !autoSavedToday) {
+      autoSavedToday = true;
+      saveHistory(true);
+    }
+  }, ms);
+  console.log(`[auto-save] agendado em ${Math.round(ms/60000)} min`);
 }
 
 // ── REINCIDENCE ───────────────────────────────────────────────
@@ -1050,6 +1029,7 @@ function showToast(msg, type='success') {
 document.getElementById('dateStart').addEventListener('change', load);
 document.getElementById('dateEnd').addEventListener('change',   load);
 document.getElementById('turno').addEventListener('change',     load);
+scheduleAutoSave();
 load();
 </script>
 </body>
