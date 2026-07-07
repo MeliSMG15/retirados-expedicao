@@ -837,33 +837,27 @@ async function analyzeWithAI() {
 
   const start = document.getElementById('dateStart').value;
   const end   = document.getElementById('dateEnd').value;
+  const turno = document.getElementById('turno').value;
 
   const reincidents = Object.entries(REINC_MAP)
     .filter(([, dates]) => dates.length > 1)
     .map(([id, dates]) => ({ id, dates }));
 
   try {
-    const res = await fetch(SCRIPT_URL, {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({
-        action: 'ai-summary',
-        data  : {
-          dateRange  : `${start} → ${end}`,
-          total      : DATA.total,
-          carriers   : DATA.carriers,
-          rotas      : DATA.rotas,
-          motivos    : DATA.motivos,
-          modals     : DATA.modals,
-          reincidents: reincidents
-        }
-      })
+    const params = new URLSearchParams({
+      action      : 'ai-summary',
+      startDate   : start,
+      endDate     : end,
+      turno       : turno,
+      reincidents : JSON.stringify(reincidents.slice(0, 20))
     });
-    const result = await res.json();
+    const res    = await fetch(`${SCRIPT_URL}?${params}`);
+    const text   = await res.text();
+    const result = JSON.parse(text);
     if (result.error) throw new Error(result.error);
     renderAIResult(result.analysis);
   } catch(e) {
-    document.getElementById('ai-body').innerHTML = `<div class="err-box"><strong>Erro na análise</strong>${e.message}<br><small>Verifique se CLAUDE_API_KEY está configurada nas Script Properties.</small></div>`;
+    document.getElementById('ai-body').innerHTML = `<div class="err-box"><strong>Erro na análise</strong>${e.message}<br><small>Verifique se o Apps Script foi reimplantado com a versão mais recente.</small></div>`;
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg> Analisar com IA`;
