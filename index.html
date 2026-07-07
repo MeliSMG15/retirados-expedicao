@@ -853,8 +853,10 @@ async function analyzeWithAI() {
     });
     const res    = await fetch(`${SCRIPT_URL}?${params}`);
     const text   = await res.text();
+    console.log('[AI] resposta bruta:', text.slice(0, 300));
     const result = JSON.parse(text);
     if (result.error) throw new Error(result.error);
+    if (!result.analysis) throw new Error('Apps Script não reconheceu action=ai-summary. Reimplante o script com a versão mais recente.');
     renderAIResult(result.analysis);
   } catch(e) {
     document.getElementById('ai-body').innerHTML = `<div class="err-box"><strong>Erro na análise</strong>${e.message}<br><small>Verifique se o Apps Script foi reimplantado com a versão mais recente.</small></div>`;
