@@ -8,6 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 :root{
   --bg:#f1f5f9;
@@ -28,18 +31,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 
 /* ── HEADER ─────────────────────────────────────── */
 .topbar{
-  background:var(--navy);
-  border-bottom:3px solid var(--brand);
-  padding:0 28px;
-  height:64px;
-  display:flex;align-items:center;gap:20px;
+  background:var(--navy);border-bottom:3px solid var(--brand);
+  padding:0 28px;height:64px;display:flex;align-items:center;gap:16px;
   position:sticky;top:0;z-index:100;
 }
 .brand{display:flex;align-items:center;gap:12px;flex:1}
-.brand-icon{
-  width:40px;height:40px;background:var(--brand);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
-}
+.brand-icon{width:40px;height:40px;background:var(--brand);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .brand-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;line-height:1.2}
 .brand-sub{color:#94a3b8;font-size:11px}
 .filters{display:flex;align-items:center;gap:10px}
@@ -50,21 +47,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 }
 .fpill:hover{background:rgba(255,255,255,.14)}
 .fpill svg{opacity:.7;flex-shrink:0}
-.fpill input,.fpill select{
-  border:none;outline:none;background:transparent;color:#fff;
-  font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;
-}
+.fpill input,.fpill select{border:none;outline:none;background:transparent;color:#fff;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer}
 .fpill input{min-width:110px}
 .fpill select{min-width:120px}
 .fpill select option{color:#111;background:#fff}
 .fsep{color:rgba(255,255,255,.3);font-size:12px}
-.btn-refresh{
-  background:var(--brand);color:#fff;border:none;border-radius:8px;
-  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;
-  transition:background .15s;
+.btn{
+  color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;
+  font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;transition:background .15s;white-space:nowrap;
 }
-.btn-refresh:hover{background:var(--brand-dk)}
+.btn-refresh{background:var(--brand)}.btn-refresh:hover{background:var(--brand-dk)}
+.btn-save{background:#16a34a}.btn-save:hover{background:#15803d}
+.btn-save.saving{background:#6b7280;cursor:not-allowed}
 
 /* ── CONTENT ────────────────────────────────────── */
 .content{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
@@ -74,44 +69,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 .kpi-card{
   background:var(--surface);border-radius:var(--radius);padding:18px 20px;
   box-shadow:var(--shadow);border:1px solid var(--border);
-  display:flex;flex-direction:column;gap:5px;
-  animation:fadeUp .3s ease both;
+  display:flex;flex-direction:column;gap:5px;animation:fadeUp .3s ease both;
 }
 .kpi-card:nth-child(2){animation-delay:.05s}
 .kpi-card:nth-child(3){animation-delay:.10s}
 .kpi-card:nth-child(4){animation-delay:.15s}
-.kpi-icon{
-  width:36px;height:36px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;margin-bottom:6px;align-self:flex-start;
-}
-.ic-red{background:#fee2e2} .ic-blue{background:#dbeafe}
-.ic-green{background:#dcfce7} .ic-amber{background:#fef3c7}
+.kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:6px;align-self:flex-start}
+.ic-red{background:#fee2e2}.ic-blue{background:#dbeafe}.ic-green{background:#dcfce7}.ic-amber{background:#fef3c7}
 .kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 .kpi-value{font-size:32px;font-weight:700;line-height:1;color:var(--navy)}
 .kpi-sub{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── CARDS ──────────────────────────────────────── */
-.card{
-  background:var(--surface);border-radius:var(--radius);
-  box-shadow:var(--shadow);border:1px solid var(--border);
-  overflow:hidden;animation:fadeUp .3s ease both;
-}
-.card-head{
-  padding:14px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;animation:fadeUp .3s ease both}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--slate)}
-.card-badge{
-  font-size:11px;background:var(--brand-lt);color:var(--brand);
-  padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0;
-}
+.card-badge{font-size:11px;background:var(--brand-lt);color:var(--brand);padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0}
 
 /* ── LAYOUT GRIDS ───────────────────────────────── */
 .grid-a{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:stretch}
 .grid-b{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
 .col{display:flex;flex-direction:column;gap:20px}
-/* chart card must flex so chart fills the height of the right column */
 .grid-a>.card{display:flex;flex-direction:column}
 .grid-a>.card .card-head{flex-shrink:0}
 
@@ -121,77 +99,139 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--navy);font-
 /* ── TABLES ─────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead th{
-  background:#f8fafc;color:var(--muted);
-  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
-  padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
-}
+thead th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
 thead th:last-child{text-align:right}
 tbody tr{transition:background .1s}
 tbody tr:hover td{background:var(--row-hover)}
 tbody td{padding:10px 14px;border-bottom:1px solid #f1f5f9;font-size:13px}
 tbody td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
 tbody tr:last-child td{border-bottom:none}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;margin-right:8px;flex-shrink:0;vertical-align:middle}
+.r1{background:#fbbf24;color:#78350f}.r2{background:#94a3b8;color:#1e293b}.r3{background:#b45309;color:#fff}.rn{background:#e2e8f0;color:var(--muted)}
+.trunc{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
 
-.rank-badge{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;
-  margin-right:8px;flex-shrink:0;vertical-align:middle;
-}
-.r1{background:#fbbf24;color:#78350f}
-.r2{background:#94a3b8;color:#1e293b}
-.r3{background:#b45309;color:#fff}
-.rn{background:#e2e8f0;color:var(--muted)}
-
-.trunc{
-  max-width:180px;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;display:inline-block;vertical-align:middle;
-}
-
-/* ── HEATMAP CROSS TABLE ────────────────────────── */
+/* ── HEATMAP ────────────────────────────────────── */
 .heat-table thead th{background:var(--navy);color:rgba(255,255,255,.75)}
 .heat-table thead th:first-child{text-align:left;min-width:170px}
 .heat-table tbody td{text-align:center !important;font-weight:600}
 .heat-table tbody td:first-child{text-align:left !important;font-weight:400;font-size:12px}
-.h0{color:#cbd5e1}
-.h1{background:#fee2e2;color:#991b1b}
-.h2{background:#fca5a5;color:#7f1d1d}
-.h3{background:#dc2626;color:#fff}
+.h0{color:#cbd5e1}.h1{background:#fee2e2;color:#991b1b}.h2{background:#fca5a5;color:#7f1d1d}.h3{background:#dc2626;color:#fff}
 
 /* ── PAGINATION ─────────────────────────────────── */
-.pag{
-  display:flex;align-items:center;gap:6px;
-  padding:10px 14px;border-top:1px solid #f1f5f9;
-  font-size:12px;color:var(--muted);
-}
+.pag{display:flex;align-items:center;gap:6px;padding:10px 14px;border-top:1px solid #f1f5f9;font-size:12px;color:var(--muted)}
 .pag-info{flex:1}
-.pag-btn{
-  width:28px;height:28px;border:1px solid var(--border);background:var(--surface);
-  border-radius:6px;cursor:pointer;font-size:15px;color:var(--slate);
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
+.pag-btn{width:28px;height:28px;border:1px solid var(--border);background:var(--surface);border-radius:6px;cursor:pointer;font-size:15px;color:var(--slate);display:flex;align-items:center;justify-content:center;transition:all .15s}
 .pag-btn:hover:not(:disabled){background:var(--brand);color:#fff;border-color:var(--brand)}
 .pag-btn:disabled{opacity:.3;cursor:default}
 
+/* ── AI ANALYSIS ────────────────────────────────── */
+.ai-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;gap:12px;color:var(--muted);text-align:center;
+}
+.ai-placeholder p{font-size:13px;max-width:360px}
+.btn-ai{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;
+  border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;
+  display:flex;align-items:center;gap:8px;
+}
+.btn-ai:hover{opacity:.9}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed}
+.ai-result{padding:20px;display:flex;flex-direction:column;gap:16px}
+.ai-resumo{
+  background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;
+  padding:14px 16px;font-size:13.5px;line-height:1.7;color:#0c4a6e;
+}
+.ai-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px}
+.ai-alertas{display:flex;flex-direction:column;gap:6px}
+.ai-alerta-item{
+  display:flex;gap:10px;align-items:flex-start;
+  background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;
+  padding:10px 12px;font-size:13px;color:#9a3412;
+}
+.ai-alerta-item::before{content:'⚠️';flex-shrink:0}
+.ai-tratativas{display:flex;flex-direction:column;gap:8px}
+.ai-trat-item{
+  border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.prio-badge{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  padding:3px 8px;border-radius:20px;flex-shrink:0;
+}
+.prio-alta{background:#fee2e2;color:#991b1b}
+.prio-media{background:#fef3c7;color:#92400e}
+.prio-baixa{background:#dcfce7;color:#14532d}
+.ai-trat-body strong{display:block;font-size:13px;margin-bottom:3px}
+.ai-trat-body p{font-size:12px;color:var(--muted)}
+.ai-monitoring{
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;
+  padding:14px 16px;font-size:13px;color:#14532d;line-height:1.6;
+}
+.ai-monitoring::before{content:'👁 ';font-size:14px}
+
+/* ── DETAILS TABLE ──────────────────────────────── */
+.details-toolbar{
+  padding:12px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.search-input{
+  flex:1;min-width:200px;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;font-size:13px;font-family:'Inter',sans-serif;
+  outline:none;transition:border .15s;background:var(--bg);
+}
+.search-input:focus{border-color:#6366f1}
+.btn-csv{
+  background:#0f172a;color:#fff;border:none;border-radius:8px;
+  padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;
+  transition:background .15s;white-space:nowrap;
+}
+.btn-csv:hover{background:#1e293b}
+.reinc-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#fef3c7;color:#92400e;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;
+  vertical-align:middle;margin-left:4px;cursor:help;
+}
+.reinc-badge-red{background:#fee2e2;color:#991b1b}
+.details-tbl thead th:last-child{text-align:left}
+.details-tbl tbody td:last-child{text-align:left;font-weight:400}
+.turno-am{background:#eff6ff;color:#1e40af;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.turno-pm{background:#f5f3ff;color:#4c1d95;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+
+/* ── HISTORY PANEL ──────────────────────────────── */
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;padding:16px 18px}
+.hist-day{
+  border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+  cursor:pointer;transition:all .15s;
+}
+.hist-day:hover{border-color:var(--brand);background:var(--brand-lt)}
+.hist-day-date{font-size:12px;font-weight:700;color:var(--navy)}
+.hist-day-total{font-size:22px;font-weight:800;color:var(--brand);line-height:1.1}
+.hist-day-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── TOAST ──────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--navy);color:#fff;padding:12px 18px;border-radius:10px;
+  font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);
+  animation:slideUp .3s ease;
+}
+.toast.success{background:#16a34a}
+.toast.error{background:var(--brand)}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
 /* ── EMPTY / LOADING / ERROR ────────────────────── */
 .empty{text-align:center;padding:28px;color:var(--muted);font-size:13px}
-.loader{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:80px;gap:14px;color:var(--muted);
-}
-.spinner{
-  width:40px;height:40px;border:3px solid var(--border);
-  border-top-color:var(--brand);border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-.err-box{
-  background:#fff1f2;border:1px solid #fecdd3;border-radius:var(--radius);
-  padding:28px;color:var(--brand-dk);text-align:center;
-}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px;gap:14px;color:var(--muted)}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite}
+.spinner-sm{width:16px;height:16px;border-width:2px;display:inline-block;animation:spin .8s linear infinite;border-color:rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;vertical-align:middle}
+.err-box{background:#fff1f2;border:1px solid #fecdd3;border-radius:var(--radius);padding:28px;color:var(--brand-dk);text-align:center}
 .err-box strong{font-size:15px;display:block;margin-bottom:6px}
 .err-box small{color:var(--muted);font-size:12px}
 
-/* ── ANIMATIONS ─────────────────────────────────── */
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -218,11 +258,15 @@ tbody tr:last-child td{border-bottom:none}
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
       <select id="turno">
         <option value="">Todos os turnos</option>
-        <option value="1">Turno 1 · Manhã</option>
-        <option value="2">Turno 2 · Tarde</option>
+        <option value="AM">AM · Manhã</option>
+        <option value="PM">PM · Tarde</option>
       </select>
     </div>
-    <button class="btn-refresh" onclick="load()">
+    <button class="btn btn-save" id="btnSave" onclick="saveHistory()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Salvar Histórico
+    </button>
+    <button class="btn btn-refresh" onclick="load()">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       Atualizar
     </button>
@@ -236,13 +280,34 @@ tbody tr:last-child td{border-bottom:none}
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS7nH2Dlykwz844OJgsZC1c1Lqg0sDJBwzXRDgqz3T5Eh3qD3X_UFhRZXj4LDxFz7V/exec';
+const FB_NODE   = 'retirados_expedicao';
 
 Chart.register(ChartDataLabels);
 
-const PAGE = {modal:1, motivos:1, promises:1, rotas:1};
-const PS   = {modal:8, motivos:5, promises:8, rotas:8};
-let DATA = null, barChart = null;
+const PAGE = { modal:1, motivos:1, promises:1, rotas:1, details:1 };
+const PS   = { modal:8, motivos:5, promises:8, rotas:8, details:20 };
 
+let DATA = null, barChart = null;
+let REINC_MAP = {};  // objectId → [date1, date2, ...]
+let db = null, fbReady = false;
+
+// ── FIREBASE ─────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey           : 'AIzaSyCR-O8PWfKdTANDPnu59DeACPmAN-TrJsI',
+  authDomain       : 'registrosmg15.firebaseapp.com',
+  databaseURL      : 'https://registrosmg15-default-rtdb.firebaseio.com',
+  projectId        : 'registrosmg15',
+  storageBucket    : 'registrosmg15.firebasestorage.app',
+  messagingSenderId: '353674201769',
+  appId            : '1:353674201769:web:14f0e14647e85875b4b7b8'
+};
+firebase.initializeApp(firebaseConfig);
+db = firebase.database();
+firebase.auth().signInAnonymously()
+  .then(() => { fbReady = true; })
+  .catch(err => console.warn('[FB] auth error', err));
+
+// ── DATE INIT ────────────────────────────────────────────────
 const today = () => new Date().toISOString().split('T')[0];
 document.getElementById('dateStart').value = today();
 document.getElementById('dateEnd').value   = today();
@@ -263,6 +328,7 @@ async function load() {
     console.log('[retirados] raw:', text.slice(0, 400));
     DATA = JSON.parse(text);
     if (DATA.error) throw new Error(DATA.error);
+
     DATA.total        = DATA.total        || 0;
     DATA.carriers     = DATA.carriers     || {};
     DATA.modals       = DATA.modals       || {};
@@ -270,9 +336,14 @@ async function load() {
     DATA.mByCarrier   = DATA.mByCarrier   || {};
     DATA.promises     = DATA.promises     || {};
     DATA.rotas        = DATA.rotas        || {};
+    DATA.details      = DATA.details      || [];
     DATA.carriersList = DATA.carriersList || Object.keys(DATA.carriers);
-    PAGE.modal = PAGE.motivos = PAGE.promises = PAGE.rotas = 1;
+
+    PAGE.modal = PAGE.motivos = PAGE.promises = PAGE.rotas = PAGE.details = 1;
+    REINC_MAP = {};
+
     render();
+    loadReincidence();   // async, updates table when ready
   } catch(e) {
     console.error('[retirados]', e);
     document.getElementById('content').innerHTML = `
@@ -288,6 +359,7 @@ async function load() {
 function render() {
   document.getElementById('content').innerHTML = `
     <div class="kpi-row" id="kpi-row"></div>
+
     <div class="grid-a">
       <div class="card">
         <div class="card-head">
@@ -321,6 +393,7 @@ function render() {
         </div>
       </div>
     </div>
+
     <div class="grid-b">
       <div class="card">
         <div class="card-head">
@@ -352,15 +425,74 @@ function render() {
           <div class="pag" id="rotas-pag"></div>
         </div>
       </div>
+    </div>
+
+    <!-- AI ANALYSIS -->
+    <div class="card" id="ai-card">
+      <div class="card-head">
+        <span class="card-title">🤖 Análise de IA — Resumo &amp; Tratativas</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="reinc-summary" style="font-size:12px;color:var(--muted)"></span>
+          <button class="btn-ai" id="btn-ai" onclick="analyzeWithAI()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+            Analisar com IA
+          </button>
+        </div>
+      </div>
+      <div id="ai-body">
+        <div class="ai-placeholder">
+          <div style="font-size:32px">🤖</div>
+          <p>Clique em <strong>Analisar com IA</strong> para obter um diagnóstico do período com resumo operacional, alertas e tratativas sugeridas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS TABLE -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Detalhes dos Pacotes</span>
+        <span class="card-badge" id="badge-details">${DATA.details.length}</span>
+      </div>
+      <div class="details-toolbar">
+        <input class="search-input" id="detail-search" placeholder="Filtrar por ID, transportadora, rota, motivo…" oninput="filterDetails()">
+        <button class="btn-csv" onclick="downloadCSV()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download CSV
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="details-tbl">
+          <thead><tr>
+            <th>#</th><th>ID / OBJECT_ID</th><th>Data</th><th>Turno</th>
+            <th>Transportadora</th><th>Modal</th><th>Rota</th>
+            <th>Motivo</th><th style="text-align:left">Promessa</th><th style="text-align:left">Reincidências</th>
+          </tr></thead>
+          <tbody id="details-body"></tbody>
+        </table>
+      </div>
+      <div class="pag" id="details-pag"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">📅 Histórico Salvo</span>
+        <span class="card-badge" id="badge-history">carregando…</span>
+      </div>
+      <div id="history-body">
+        <div class="empty">Carregando histórico…</div>
+      </div>
     </div>`;
 
   renderKPIs();
   renderBar();
-  renderTable('modal-body',   'modal-pag',    'badge-modals',   DATA.modals,   'modal');
+  renderTable('modal-body',   'modal-pag',   'badge-modals',   DATA.modals,   'modal');
   renderMotivos();
   renderCross();
-  renderTable('promises-body','promises-pag', 'badge-promises', DATA.promises, 'promises');
-  renderTable('rotas-body',   'rotas-pag',    'badge-rotas',    DATA.rotas,    'rotas');
+  renderTable('promises-body','promises-pag','badge-promises', DATA.promises, 'promises');
+  renderTable('rotas-body',   'rotas-pag',   'badge-rotas',    DATA.rotas,    'rotas');
+  renderDetails();
+  loadHistory();
 }
 
 // ── KPI CARDS ────────────────────────────────────────────────
@@ -416,45 +548,30 @@ function renderBar() {
     type: 'bar',
     data: {
       labels: labels.map(shortName),
-      datasets: [{
-        label: 'Retiradas',
-        data: values,
-        backgroundColor: labels.map((_,i) => i===0 ? '#dc2626' : '#f87171'),
-        borderRadius: 5,
-        borderSkipped: false,
+      datasets:[{
+        label:'Retiradas', data:values,
+        backgroundColor: labels.map((_,i) => i===0?'#dc2626':'#f87171'),
+        borderRadius:5, borderSkipped:false,
       }]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {display:false},
-        datalabels: {
-          anchor:'end', align:'top',
-          font:{size:12, weight:'700'},
-          color:'#0f172a',
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        datalabels:{
+          anchor:'end',align:'top',font:{size:12,weight:'700'},color:'#0f172a',
           formatter: v => v.toLocaleString('pt-BR')
         }
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {color:'#f1f5f9'},
-          ticks: {font:{size:11}, color:'#94a3b8'},
-          border: {display:false}
-        },
-        x: {
-          grid: {display:false},
-          ticks: {
-            font:{size:10}, color:'#64748b',
-            autoSkip: false,
-            maxRotation: 40,
-            minRotation: 0,
-            callback: function(val, idx) {
-              const lbl = this.getLabelForValue(val);
-              return lbl.length > 14 ? lbl.slice(0, 13) + '…' : lbl;
-            }
-          },
-          border: {display:false}
+      scales:{
+        y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{font:{size:11},color:'#94a3b8'},border:{display:false}},
+        x:{
+          grid:{display:false},border:{display:false},
+          ticks:{
+            font:{size:10},color:'#64748b',autoSkip:false,
+            maxRotation:40,minRotation:0,
+            callback(val, idx){ const l=this.getLabelForValue(val); return l.length>14?l.slice(0,13)+'…':l; }
+          }
         }
       }
     }
@@ -467,11 +584,9 @@ function renderTable(tbodyId, pagId, badgeId, obj, key) {
   const total = entries.length;
   const ps = PS[key], pg = PAGE[key];
   const slice = entries.slice((pg-1)*ps, pg*ps);
-
   if (badgeId) document.getElementById(badgeId).textContent = total;
   if (!total) {
-    document.getElementById(tbodyId).innerHTML =
-      `<tr><td colspan="2" class="empty">Sem dados no período</td></tr>`;
+    document.getElementById(tbodyId).innerHTML = `<tr><td colspan="2" class="empty">Sem dados no período</td></tr>`;
     document.getElementById(pagId).innerHTML = '';
     return;
   }
@@ -487,37 +602,32 @@ function renderMotivos() {
   const total = entries.length;
   const ps = PS.motivos, pg = PAGE.motivos;
   const slice = entries.slice((pg-1)*ps, pg*ps);
-
   document.getElementById('badge-motivos').textContent = total;
   if (!total) {
-    document.getElementById('motivos-body').innerHTML =
-      `<tr><td colspan="2" class="empty">Sem ocorrências</td></tr>`;
+    document.getElementById('motivos-body').innerHTML = `<tr><td colspan="2" class="empty">Sem ocorrências</td></tr>`;
     document.getElementById('motivos-pag').innerHTML = '';
     return;
   }
   document.getElementById('motivos-body').innerHTML = slice.map(([k,v],i) => {
-    const n   = (pg-1)*ps + i + 1;
+    const n = (pg-1)*ps+i+1;
     const cls = n===1?'r1':n===2?'r2':n===3?'r3':'rn';
     return `<tr>
       <td><span class="rank-badge ${cls}">${n}</span><span class="trunc" title="${k}" style="max-width:155px">${k}</span></td>
       <td>${v.toLocaleString('pt-BR')}</td>
     </tr>`;
   }).join('');
-  renderPag('motivos-pag', total, ps, pg, 'motivos');
+  renderPag('motivos-pag', total, PS.motivos, PAGE.motivos, 'motivos');
 }
 
 // ── CROSS HEATMAP ────────────────────────────────────────────
 function renderCross() {
   const motivos = Object.keys(DATA.mByCarrier);
   if (!motivos.length) {
-    document.getElementById('cross-wrap').innerHTML =
-      '<div class="empty">Sem dados de motivos no período</div>';
+    document.getElementById('cross-wrap').innerHTML = '<div class="empty">Sem dados de motivos no período</div>';
     return;
   }
   const count = {};
-  motivos.forEach(m =>
-    Object.entries(DATA.mByCarrier[m] || {}).forEach(([c,n]) => count[c] = (count[c]||0)+n)
-  );
+  motivos.forEach(m => Object.entries(DATA.mByCarrier[m]||{}).forEach(([c,n]) => count[c]=(count[c]||0)+n));
   const carriers = Object.keys(count).sort((a,b) => count[a]-count[b]);
   const maxV = Math.max(...Object.values(count), 1);
   const heat = v => !v?'h0':v<maxV*.2?'h1':v<maxV*.55?'h2':'h3';
@@ -531,20 +641,274 @@ function renderCross() {
       <tbody>
         ${motivos.map(m=>`<tr>
           <td><span class="trunc" title="${m}" style="max-width:200px">${m}</span></td>
-          ${carriers.map(c=>{
-            const v=(DATA.mByCarrier[m]||{})[c]||0;
-            return `<td class="${heat(v)}">${v||'–'}</td>`;
-          }).join('')}
+          ${carriers.map(c=>{ const v=(DATA.mByCarrier[m]||{})[c]||0; return `<td class="${heat(v)}">${v||'–'}</td>`; }).join('')}
         </tr>`).join('')}
       </tbody>
     </table>`;
+}
+
+// ── DETAILS TABLE ────────────────────────────────────────────
+let detailsFiltered = [];
+
+function filterDetails() {
+  const q = (document.getElementById('detail-search').value || '').toLowerCase();
+  detailsFiltered = q
+    ? DATA.details.filter(d =>
+        (d.id||'').toLowerCase().includes(q) ||
+        (d.carrier||'').toLowerCase().includes(q) ||
+        (d.rota||'').toLowerCase().includes(q) ||
+        (d.motivo||'').toLowerCase().includes(q) ||
+        (d.modal||'').toLowerCase().includes(q))
+    : [...DATA.details];
+  PAGE.details = 1;
+  renderDetails();
+}
+
+function renderDetails() {
+  if (!DATA) return;
+  if (!detailsFiltered.length && DATA.details.length) detailsFiltered = [...DATA.details];
+  const total = detailsFiltered.length;
+  const ps = PS.details, pg = PAGE.details;
+  const slice = detailsFiltered.slice((pg-1)*ps, pg*ps);
+
+  document.getElementById('details-body').innerHTML = slice.map((d, si) => {
+    const n    = (pg-1)*ps + si + 1;
+    const rcDates = REINC_MAP[d.id];
+    const rcBadge = rcDates && rcDates.length > 1
+      ? `<span class="reinc-badge ${rcDates.length>=3?'reinc-badge-red':''}" title="Apareceu em: ${rcDates.join(', ')}">🔄 ${rcDates.length}x</span>`
+      : '';
+    const tCls = d.turno==='AM'?'turno-am':'turno-pm';
+    return `<tr>
+      <td style="color:var(--muted);text-align:right">${n}</td>
+      <td><code style="font-size:11px;background:#f1f5f9;padding:2px 5px;border-radius:4px">${d.id||'—'}</code>${rcBadge}</td>
+      <td>${d.date||'—'}</td>
+      <td><span class="${tCls}">${d.turno||'—'}</span></td>
+      <td><span class="trunc" title="${d.carrier}" style="max-width:140px">${d.carrier}</span></td>
+      <td><span class="trunc" title="${d.modal}" style="max-width:110px">${d.modal}</span></td>
+      <td><span class="trunc" title="${d.rota}" style="max-width:110px">${d.rota}</span></td>
+      <td><span class="trunc" title="${d.motivo}" style="max-width:140px">${d.motivo||'—'}</span></td>
+      <td style="text-align:left">${d.promise||'—'}</td>
+      <td style="text-align:left">
+        ${rcDates && rcDates.length>1 ? rcDates.filter(dt=>dt!==d.date).map(dt=>`<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;margin-right:3px">${dt}</span>`).join('') : '<span style="color:var(--muted);font-size:11px">—</span>'}
+      </td>
+    </tr>`;
+  }).join('');
+  renderPag('details-pag', total, ps, pg, 'details');
+}
+
+// ── CSV DOWNLOAD ─────────────────────────────────────────────
+function downloadCSV() {
+  if (!DATA || !DATA.details.length) return;
+  const rows = detailsFiltered.length ? detailsFiltered : DATA.details;
+  const header = ['ID','Data','Turno','Transportadora','Modal','Rota','Motivo','Promessa','Reincidencias'];
+  const lines = [header.join(';')];
+  rows.forEach(d => {
+    const rcDates = REINC_MAP[d.id];
+    const reinc = rcDates && rcDates.length > 1 ? rcDates.filter(dt=>dt!==d.date).join('|') : '';
+    lines.push([d.id, d.date, d.turno, d.carrier, d.modal, d.rota, `"${(d.motivo||'').replace(/"/g,'""')}"`, d.promise, reinc].join(';'));
+  });
+  const blob = new Blob(['﻿' + lines.join('\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const start = document.getElementById('dateStart').value;
+  const turno = document.getElementById('turno').value || 'todos';
+  a.download = `retirados_${start}_${turno}.csv`;
+  a.click();
+}
+
+// ── FIREBASE SAVE ────────────────────────────────────────────
+async function saveHistory() {
+  if (!DATA) return showToast('Carregue dados primeiro.', 'error');
+  if (!fbReady) return showToast('Firebase não pronto, aguarde.', 'error');
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  btn.classList.add('saving');
+  btn.innerHTML = '<span class="spinner-sm"></span> Salvando…';
+
+  const date  = document.getElementById('dateStart').value;
+  const turno = document.getElementById('turno').value || 'all';
+
+  try {
+    // Salva resumo do dia
+    await db.ref(`${FB_NODE}/history/${date}`).update({
+      savedAt  : firebase.database.ServerValue.TIMESTAMP,
+      total    : DATA.total,
+      turno    : turno,
+      carriers : DATA.carriers,
+      modals   : DATA.modals,
+      motivos  : DATA.motivos,
+      rotas    : DATA.rotas
+    });
+
+    // Atualiza índice de reincidência (id → {data: turno})
+    const updates = {};
+    DATA.details.forEach(item => {
+      if (!item.id) return;
+      const safeId = item.id.toString().replace(/[.#$\[\]/]/g, '_');
+      updates[`${FB_NODE}/id_index/${safeId}/${date}`] = turno || 'all';
+    });
+    if (Object.keys(updates).length) await db.ref().update(updates);
+
+    showToast(`✓ ${DATA.total} pacotes salvos para ${date}`, 'success');
+    loadHistory();
+  } catch (err) {
+    console.error('[FB save]', err);
+    showToast('Erro ao salvar: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('saving');
+    btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Histórico`;
+  }
+}
+
+// ── LOAD HISTORY ─────────────────────────────────────────────
+async function loadHistory() {
+  if (!fbReady) return;
+  try {
+    const snap = await db.ref(`${FB_NODE}/history`).once('value');
+    const hist = snap.val() || {};
+    const days = Object.keys(hist).sort().reverse();
+
+    const badge = document.getElementById('badge-history');
+    const body  = document.getElementById('history-body');
+    if (!badge || !body) return;
+
+    badge.textContent = `${days.length} dias`;
+    if (!days.length) {
+      body.innerHTML = '<div class="empty">Nenhum histórico salvo ainda.</div>';
+      return;
+    }
+
+    body.innerHTML = `<div class="history-grid">
+      ${days.map(d => {
+        const h = hist[d];
+        const topC = Object.keys(h.carriers||{})[0] || '—';
+        return `<div class="hist-day" onclick="loadDay('${d}')">
+          <div class="hist-day-date">${fmtDate(d)}</div>
+          <div class="hist-day-total">${(h.total||0).toLocaleString('pt-BR')}</div>
+          <div class="hist-day-meta">${shortName(topC)} · ${h.turno||'all'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } catch(e) { console.warn('[hist]', e); }
+}
+
+function loadDay(date) {
+  document.getElementById('dateStart').value = date;
+  document.getElementById('dateEnd').value   = date;
+  document.getElementById('turno').value     = '';
+  load();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── REINCIDENCE ───────────────────────────────────────────────
+async function loadReincidence() {
+  if (!fbReady || !DATA || !DATA.details.length) return;
+  try {
+    const snap = await db.ref(`${FB_NODE}/id_index`).once('value');
+    const index = snap.val() || {};
+    REINC_MAP = {};
+    DATA.details.forEach(item => {
+      if (!item.id) return;
+      const safeId = item.id.toString().replace(/[.#$\[\]/]/g, '_');
+      const entry  = index[safeId];
+      if (entry) {
+        REINC_MAP[item.id] = Object.keys(entry).sort();
+      }
+    });
+    const reincCount = Object.values(REINC_MAP).filter(dates => dates.length > 1).length;
+    const el = document.getElementById('reinc-summary');
+    if (el) {
+      el.textContent = reincCount > 0
+        ? `🔄 ${reincCount} ID${reincCount!==1?'s':''} reincidente${reincCount!==1?'s':''}`
+        : '';
+      if (reincCount > 0) el.style.color = '#dc2626';
+    }
+    renderDetails();   // re-render with reincidence badges
+  } catch(e) { console.warn('[reinc]', e); }
+}
+
+// ── AI ANALYSIS ──────────────────────────────────────────────
+async function analyzeWithAI() {
+  const btn = document.getElementById('btn-ai');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-sm"></span> Analisando…';
+
+  const start = document.getElementById('dateStart').value;
+  const end   = document.getElementById('dateEnd').value;
+
+  const reincidents = Object.entries(REINC_MAP)
+    .filter(([, dates]) => dates.length > 1)
+    .map(([id, dates]) => ({ id, dates }));
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        action: 'ai-summary',
+        data  : {
+          dateRange  : `${start} → ${end}`,
+          total      : DATA.total,
+          carriers   : DATA.carriers,
+          rotas      : DATA.rotas,
+          motivos    : DATA.motivos,
+          modals     : DATA.modals,
+          reincidents: reincidents
+        }
+      })
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+    renderAIResult(result.analysis);
+  } catch(e) {
+    document.getElementById('ai-body').innerHTML = `<div class="err-box"><strong>Erro na análise</strong>${e.message}<br><small>Verifique se CLAUDE_API_KEY está configurada nas Script Properties.</small></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg> Analisar com IA`;
+  }
+}
+
+function renderAIResult(a) {
+  if (!a) return;
+  const prioClass = p => p==='alta'?'prio-alta':p==='media'?'prio-media':'prio-baixa';
+  document.getElementById('ai-body').innerHTML = `
+    <div class="ai-result">
+      <div>
+        <div class="ai-section-title">📊 Resumo Operacional</div>
+        <div class="ai-resumo">${a.resumo||'—'}</div>
+      </div>
+      ${a.alertas && a.alertas.length ? `
+      <div>
+        <div class="ai-section-title">⚠️ Alertas</div>
+        <div class="ai-alertas">${a.alertas.map(x=>`<div class="ai-alerta-item">${x}</div>`).join('')}</div>
+      </div>` : ''}
+      ${a.tratativas && a.tratativas.length ? `
+      <div>
+        <div class="ai-section-title">✅ Tratativas Sugeridas</div>
+        <div class="ai-tratativas">${a.tratativas.map(t=>`
+          <div class="ai-trat-item">
+            <span class="prio-badge ${prioClass(t.prioridade)}">${(t.prioridade||'—').toUpperCase()}</span>
+            <div class="ai-trat-body"><strong>${t.titulo}</strong><p>${t.detalhe}</p></div>
+          </div>`).join('')}
+        </div>
+      </div>` : ''}
+      ${a.monitoramento ? `
+      <div>
+        <div class="ai-section-title">👁 Monitoramento Contínuo</div>
+        <div class="ai-monitoring">${a.monitoramento}</div>
+      </div>` : ''}
+    </div>`;
 }
 
 // ── PAGINATION ───────────────────────────────────────────────
 function renderPag(id, total, ps, pg, key) {
   const pages = Math.ceil(total/ps);
   const s = (pg-1)*ps+1, e = Math.min(pg*ps, total);
-  document.getElementById(id).innerHTML = `
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `
     <span class="pag-info">${s}–${e} de ${total}</span>
     <button class="pag-btn" onclick="turnPage('${key}',-1)" ${pg<=1?'disabled':''}>‹</button>
     <button class="pag-btn" onclick="turnPage('${key}', 1)" ${pg>=pages?'disabled':''}>›</button>`;
@@ -555,6 +919,7 @@ window.turnPage = (key, dir) => {
   if (key==='motivos')  renderMotivos();
   if (key==='promises') renderTable('promises-body','promises-pag','badge-promises', DATA.promises, 'promises');
   if (key==='rotas')    renderTable('rotas-body',   'rotas-pag',   'badge-rotas',    DATA.rotas,    'rotas');
+  if (key==='details')  renderDetails();
 };
 
 // ── HELPERS ──────────────────────────────────────────────────
@@ -565,16 +930,27 @@ const SHORT = {
   'COOPERATIVA DOIS TRANSPORTADORES AUTÔNOMOS DE CARGA E PASSAGEIROS':'COOPERATIVA',
   'MICHELL FERREIRA VITORINO ME':'MICHELL',
   'ECO EXPRESS SERVICOS SUSTENTAVEIS LTDA':'ECO EXPRESS',
-  'dhlbr':'DHL',
-  'Kangu':'KANGU',
+  'dhlbr':'DHL','Kangu':'KANGU',
 };
 const shortName = n => SHORT[n] || n;
-const trunc = (s, n) => s.length>n ? s.slice(0,n-1)+'…' : s;
+const trunc = (s, n) => s && s.length>n ? s.slice(0,n-1)+'…' : s;
+const fmtDate = s => {
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+};
+
+function showToast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
 
 // ── INIT ─────────────────────────────────────────────────────
 document.getElementById('dateStart').addEventListener('change', load);
-document.getElementById('dateEnd').addEventListener('change', load);
-document.getElementById('turno').addEventListener('change', load);
+document.getElementById('dateEnd').addEventListener('change',   load);
+document.getElementById('turno').addEventListener('change',     load);
 load();
 </script>
 </body>
