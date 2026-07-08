@@ -447,13 +447,59 @@ document.getElementById('dateEnd').value   = today();
 // ── LOAD ─────────────────────────────────────────────────────
 async function load() {
   const start = document.getElementById('dateStart').value;
-  const end   = start; // sempre um único dia
+  const end   = start;
   document.getElementById('dateEnd').value = start;
   const turno = document.getElementById('turno').value;
   if (!start) return;
 
   document.getElementById('content').innerHTML =
     '<div class="loader"><div class="spinner"></div><span>Carregando dados…</span></div>';
+
+  const isToday = start === today();
+
+  // Para datas passadas: tenta Firebase primeiro
+  if (!isToday) {
+    try {
+      await waitFb();
+      const snap = await db.ref(`${FB_NODE}/history/${start}`).once('value');
+      const hist = snap.val();
+      if (hist && hist.total != null) {
+        DATA = {
+          total        : hist.total        || 0,
+          totalUSD     : hist.totalUSD     || 0,
+          totalBRL     : hist.totalBRL     || 0,
+          carriers     : hist.carriers     || {},
+          modals       : hist.modals       || {},
+          motivos      : hist.motivos      || {},
+          mByCarrier   : hist.mByCarrier   || {},
+          promises     : hist.promises     || {},
+          rotas        : hist.rotas        || {},
+          details      : hist.details      || [],
+          carriersList : Object.keys(hist.carriers || {})
+        };
+        // Aplica filtro de turno se necessário
+        if (turno === 'AM' || turno === 'PM') {
+          DATA.details = DATA.details.filter(d => d.turno === turno);
+        }
+        PAGE.modal = PAGE.motivos = PAGE.promises = PAGE.rotas = PAGE.details = 1;
+        REINC_MAP = {};
+        render();
+        loadReincidence();
+        showToast(`Histórico de ${start} carregado do arquivo.`, 'success');
+        return;
+      } else {
+        document.getElementById('content').innerHTML = `
+          <div class="err-box">
+            <strong>Sem histórico para ${start}</strong>
+            Os dados deste dia não foram salvos. O histórico é salvo automaticamente às 20h enquanto o dashboard estiver aberto.<br>
+            <small>Para o dia de hoje os dados são carregados em tempo real.</small>
+          </div>`;
+        return;
+      }
+    } catch(e) {
+      console.warn('[hist fb]', e);
+    }
+  }
 
   try {
     const res  = await fetch(`${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`);
@@ -490,6 +536,14 @@ async function load() {
         <small>Abra o Console (F12) para ver a resposta do servidor.</small>
       </div>`;
   }
+}
+
+function waitFb(ms = 3000) {
+  if (fbReady) return Promise.resolve();
+  return new Promise(resolve => {
+    const t = Date.now();
+    const iv = setInterval(() => { if (fbReady || Date.now()-t > ms) { clearInterval(iv); resolve(); } }, 100);
+  });
 }
 
 // ── RENDER SHELL ─────────────────────────────────────────────
@@ -1000,12 +1054,17 @@ async function saveHistory(silent = false) {
 
   try {
     await db.ref(`${FB_NODE}/history/${date}`).update({
-      savedAt  : firebase.database.ServerValue.TIMESTAMP,
-      total    : DATA.total,
-      carriers : DATA.carriers,
-      modals   : DATA.modals,
-      motivos  : DATA.motivos,
-      rotas    : DATA.rotas
+      savedAt    : firebase.database.ServerValue.TIMESTAMP,
+      total      : DATA.total,
+      totalUSD   : DATA.totalUSD   || 0,
+      totalBRL   : DATA.totalBRL   || 0,
+      carriers   : DATA.carriers,
+      modals     : DATA.modals,
+      motivos    : DATA.motivos,
+      mByCarrier : DATA.mByCarrier || {},
+      promises   : DATA.promises   || {},
+      rotas      : DATA.rotas,
+      details    : DATA.details    || []
     });
 
     const updates = {};
