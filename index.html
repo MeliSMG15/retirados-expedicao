@@ -370,6 +370,86 @@ tbody tr:last-child td{border-bottom:none}
 
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ TABS ══════════════════════════════════════════ */
+.tab-bar{
+  background:#1a2332;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:0 32px;display:flex;gap:2px;
+}
+.tab-btn{
+  background:transparent;border:none;color:#6b7280;
+  padding:13px 22px;cursor:pointer;font-size:13px;font-weight:600;
+  border-bottom:3px solid transparent;transition:all .2s;
+  font-family:'Inter',sans-serif;letter-spacing:.1px;
+}
+.tab-btn:hover{color:#d1d5db}
+.tab-btn.active{color:#fff;border-bottom-color:var(--brand)}
+
+/* ═══ RESSALVAS ═════════════════════════════════════ */
+.res-op-bar{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);border-radius:var(--radius);
+  padding:14px 20px;box-shadow:var(--shadow);border:1px solid var(--border);
+}
+.res-op-bar label{font-size:13px;font-weight:600;color:var(--slate);white-space:nowrap}
+.res-op-input{
+  border:1px solid var(--border);border-radius:8px;padding:7px 12px;
+  font-size:13px;font-family:'Inter',sans-serif;outline:none;
+  color:var(--navy);transition:border .2s;flex:1;max-width:240px;
+}
+.res-op-input:focus{border-color:var(--brand)}
+.res-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi-card-rev{--kpi-accent:linear-gradient(90deg,#059669,#34d399)}
+.kpi-card-taxa{--kpi-accent:linear-gradient(90deg,#7c3aed,#a78bfa)}
+.res-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
+.res-wrap-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);
+}
+.res-wrap-title{font-size:14px;font-weight:700;color:var(--navy)}
+.res-wrap-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.res-tbl{width:100%;border-collapse:collapse}
+.res-tbl thead th{
+  background:linear-gradient(180deg,#f9fafb,#f3f4f6);
+  color:var(--muted);font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.7px;
+  padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.res-tbl tbody td{
+  padding:10px 14px;border-bottom:1px solid var(--border-lt);
+  font-size:13px;color:var(--navy);vertical-align:middle;
+}
+.res-tbl tbody tr:last-child td{border-bottom:none}
+.res-tbl tbody tr:hover:not(.rev-row) td{background:var(--row-hover)}
+.rev-row td{background:linear-gradient(90deg,#f0fdf4,#ffffff)!important;color:#166534}
+.btn-rev{
+  background:linear-gradient(135deg,#059669,#10b981);
+  color:#fff;border:none;border-radius:7px;
+  padding:5px 13px;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap;
+}
+.btn-rev:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(5,150,105,.3)}
+.btn-undo{background:linear-gradient(135deg,#6b7280,#9ca3af)}
+.btn-undo:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(107,114,128,.3)}
+.badge-rev{
+  background:#dcfce7;color:#166534;
+  padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;
+}
+.rev-meta{font-size:11px;color:#059669;margin-top:2px}
+.rev-obs-txt{font-size:11px;color:#6b7280;margin-top:1px;font-style:italic}
+.obs-inp{
+  border:1px solid var(--border);border-radius:6px;
+  padding:4px 8px;font-size:12px;font-family:'Inter',sans-serif;
+  color:var(--navy);outline:none;width:160px;transition:border .2s;
+}
+.obs-inp:focus{border-color:#059669}
+.pkg-id{
+  font-size:11.5px;background:#f3f4f6;padding:2px 7px;
+  border-radius:5px;font-family:monospace;cursor:pointer;
+  transition:background .15s;
+}
+.pkg-id:hover{background:#e5e7eb}
 </style>
 </head>
 <body>
@@ -404,9 +484,24 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- ═══ CONTENT ══════════════════════════════════════════════ -->
-<div class="content" id="content">
-  <div class="loader"><div class="spinner"></div><span>Carregando dados…</span></div>
+<!-- ═══ TAB BAR ══════════════════════════════════════════════ -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="tab-btn" id="tab-btn-ressalvas" onclick="switchTab('ressalvas')">✅ Ressalvas</button>
+</div>
+
+<!-- ═══ DASHBOARD TAB ═════════════════════════════════════════ -->
+<div id="tab-dashboard">
+  <div class="content" id="content">
+    <div class="loader"><div class="spinner"></div><span>Carregando dados…</span></div>
+  </div>
+</div>
+
+<!-- ═══ RESSALVAS TAB ════════════════════════════════════════ -->
+<div id="tab-ressalvas" style="display:none">
+  <div class="content" id="ressalvas-content">
+    <div class="loader"><div class="spinner"></div><span>Carregando ressalvas…</span></div>
+  </div>
 </div>
 
 <script>
@@ -1259,8 +1354,185 @@ function showToast(msg, type='success') {
   setTimeout(() => t.remove(), 3500);
 }
 
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-btn-' + name).classList.add('active');
+  document.getElementById('tab-dashboard').style.display  = name === 'dashboard'  ? '' : 'none';
+  document.getElementById('tab-ressalvas').style.display  = name === 'ressalvas'  ? '' : 'none';
+  if (name === 'ressalvas') loadRessalvas();
+}
+
+// ── RESSALVAS ─────────────────────────────────────────────────
+let RES_DATA = {};
+let _resListener = null;
+
+function safeId(id) {
+  return String(id || '').replace(/[.#$\[\]/]/g, '_');
+}
+
+async function loadRessalvas() {
+  const date = document.getElementById('dateStart').value;
+  if (!date) { renderRessalvas(); return; }
+  await waitFb();
+  if (_resListener) db.ref(`${FB_NODE}/ressalvas/${date}`).off('value', _resListener);
+  _resListener = db.ref(`${FB_NODE}/ressalvas/${date}`).on('value', snap => {
+    RES_DATA = snap.val() || {};
+    renderRessalvas();
+  });
+}
+
+function renderRessalvas() {
+  const date  = document.getElementById('dateStart').value;
+  const pkgs  = DATA ? DATA.details : [];
+  const revs  = Object.values(RES_DATA);
+  const totalRev = revs.length;
+  const sumBrl   = revs.reduce((s, r) => s + (r.valBrl || 0), 0);
+  const sumUsd   = revs.reduce((s, r) => s + (r.valUsd || 0), 0);
+  const totalPkg = DATA ? DATA.total : 0;
+  const taxa     = totalPkg > 0 ? Math.round(totalRev / totalPkg * 100) : 0;
+
+  const fmtBrl = v => v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const fmtUsd = v => v.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+
+  const kpiHtml = `<div class="res-kpi-row">
+    <div class="kpi-card kpi-card-rev">
+      <div class="kpi-header"><div class="kpi-icon ic-green">✅</div></div>
+      <div class="kpi-label">Total Revertidos</div>
+      <div class="kpi-value" style="font-size:42px;color:#059669">${totalRev}</div>
+      <div class="kpi-sub">de ${totalPkg} retirados</div>
+    </div>
+    <div class="kpi-card kpi-card-brl">
+      <div class="kpi-header"><div class="kpi-icon ic-green">💰</div></div>
+      <div class="kpi-label">Valor BRL Recuperado</div>
+      <div class="kpi-value" style="font-size:26px;color:#059669">R$ ${fmtBrl(sumBrl)}</div>
+      <div class="kpi-sub">${totalRev} pacote${totalRev!==1?'s':''}</div>
+    </div>
+    <div class="kpi-card kpi-card-usd">
+      <div class="kpi-header"><div class="kpi-icon ic-sky">💵</div></div>
+      <div class="kpi-label">Valor USD Recuperado</div>
+      <div class="kpi-value" style="font-size:26px;color:#0284c7">$ ${fmtUsd(sumUsd)}</div>
+      <div class="kpi-sub">${totalRev} pacote${totalRev!==1?'s':''}</div>
+    </div>
+    <div class="kpi-card kpi-card-taxa">
+      <div class="kpi-header"><div class="kpi-icon" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe)">📈</div></div>
+      <div class="kpi-label">Taxa de Recuperação</div>
+      <div class="kpi-value" style="font-size:42px;color:#7c3aed">${taxa}%</div>
+      <div class="kpi-sub">${totalRev} de ${totalPkg}</div>
+    </div>
+  </div>`;
+
+  let rows = '';
+  if (pkgs.length === 0) {
+    rows = `<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--muted)">
+      📭 Carregue os dados no Dashboard primeiro ou selecione uma data com histórico salvo.
+    </td></tr>`;
+  } else {
+    rows = pkgs.map(pkg => {
+      const sid = safeId(pkg.id);
+      const rev = RES_DATA[sid];
+      const isRev = !!rev;
+      const hora  = isRev ? new Date(rev.t).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '';
+      return `<tr class="${isRev ? 'rev-row' : ''}">
+        <td><span class="pkg-id" onclick="navigator.clipboard.writeText('${pkg.id}')" title="Clique para copiar">${pkg.id || '—'}</span></td>
+        <td>${pkg.carrier || '—'}</td>
+        <td>${pkg.rota || '—'}</td>
+        <td>${pkg.turno || '—'}</td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${pkg.motivo || ''}">${pkg.motivo || '—'}</td>
+        <td style="white-space:nowrap;font-weight:600">R$ ${fmtBrl(pkg.valBrl||0)}</td>
+        <td style="white-space:nowrap;font-weight:600">$ ${fmtUsd(pkg.valUsd||0)}</td>
+        <td>${isRev
+          ? `<span class="badge-rev">✓ Revertido</span>
+             <div class="rev-meta">${rev.op || 'Anônimo'} · ${hora}</div>
+             ${rev.obs ? `<div class="rev-obs-txt">${rev.obs}</div>` : ''}`
+          : `<input class="obs-inp" id="obs-${sid}" placeholder="Obs. (opcional)">`
+        }</td>
+        <td>${isRev
+          ? `<button class="btn-rev btn-undo" onclick="unmarkRessalva('${sid}','${date}')">Desfazer</button>`
+          : `<button class="btn-rev" onclick="markRessalva('${sid}',${JSON.stringify(pkg)},'${date}')">✓ Reverter</button>`
+        }</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const opVal = localStorage.getItem('ret_op_rev') || '';
+  const tableHtml = `<div class="res-wrap">
+    <div class="res-wrap-head">
+      <div>
+        <div class="res-wrap-title">Pacotes Retirados · ${date || 'selecione uma data'}</div>
+        <div class="res-wrap-sub">${pkgs.length} pacote${pkgs.length!==1?'s':''} · ${totalRev} revertido${totalRev!==1?'s':''}</div>
+      </div>
+      <button class="btn" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);font-size:12px;padding:7px 14px" onclick="exportRessalvas('${date}')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="res-tbl">
+        <thead><tr>
+          <th>ID Pacote</th><th>Transportadora</th><th>Rota</th><th>Turno</th>
+          <th>Motivo Ofensor</th><th>Valor BRL</th><th>Valor USD</th>
+          <th>Observação / Status</th><th>Ação</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+
+  document.getElementById('ressalvas-content').innerHTML =
+    `<div class="res-op-bar">
+       <label>Operador:</label>
+       <input class="res-op-input" id="res-op" type="text" placeholder="Seu nome" value="${opVal}"
+         oninput="localStorage.setItem('ret_op_rev',this.value)">
+       <span style="font-size:12px;color:var(--muted);margin-left:4px">— identifica quem fez a reversão</span>
+     </div>` + kpiHtml + tableHtml;
+}
+
+async function markRessalva(sid, pkg, date) {
+  await waitFb();
+  const op  = (document.getElementById('res-op')?.value || '').trim() || 'Anônimo';
+  const obs = (document.getElementById('obs-' + sid)?.value || '').trim();
+  const payload = {
+    id      : pkg.id,
+    t       : Date.now(),
+    op,
+    carrier : pkg.carrier || '',
+    rota    : pkg.rota    || '',
+    turno   : pkg.turno   || '',
+    motivo  : pkg.motivo  || '',
+    promise : pkg.promise || '',
+    valUsd  : pkg.valUsd  || 0,
+    valBrl  : pkg.valBrl  || 0
+  };
+  if (obs) payload.obs = obs;
+  await db.ref(`${FB_NODE}/ressalvas/${date}/${sid}`).set(payload);
+}
+
+async function unmarkRessalva(sid, date) {
+  if (!confirm('Remover reversão deste pacote?')) return;
+  await waitFb();
+  await db.ref(`${FB_NODE}/ressalvas/${date}/${sid}`).remove();
+}
+
+function exportRessalvas(date) {
+  const revs = Object.values(RES_DATA);
+  if (!revs.length) { showToast('Nenhum revertido para exportar.', 'error'); return; }
+  const header = 'ID,Transportadora,Rota,Turno,Motivo,Valor BRL,Valor USD,Operador,Hora,Observacao';
+  const q = v => `"${String(v || '').replace(/"/g,'""')}"`;
+  const csvRows = revs.map(r => [
+    r.id, r.carrier, r.rota, r.turno, r.motivo,
+    (r.valBrl||0).toFixed(2), (r.valUsd||0).toFixed(2),
+    r.op, new Date(r.t).toLocaleString('pt-BR'), r.obs || ''
+  ].map(q).join(','));
+  const blob = new Blob([[header, ...csvRows].join('\n')], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ressalvas_${date}.csv`;
+  a.click();
+}
+
 // ── INIT ─────────────────────────────────────────────────────
-document.getElementById('dateStart').addEventListener('change', load);
+document.getElementById('dateStart').addEventListener('change', () => { load(); if (_resListener) loadRessalvas(); });
 document.getElementById('turno').addEventListener('change',     load);
 scheduleAutoSave();
 load();
