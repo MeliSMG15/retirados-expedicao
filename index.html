@@ -458,6 +458,9 @@ async function load() {
     const res  = await fetch(`${SCRIPT_URL}?startDate=${start}&endDate=${end}&turno=${turno}`);
     const text = await res.text();
     console.log('[retirados] raw:', text.slice(0, 400));
+    if (text.trim().startsWith('<')) {
+      throw new Error('O Apps Script retornou uma página HTML em vez de dados. Reimplante o script no Google Apps Script e tente novamente.');
+    }
     DATA = JSON.parse(text);
     if (DATA.error) throw new Error(DATA.error);
 
