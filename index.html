@@ -874,7 +874,7 @@ function renderFinancials(reincRisk = null) {
 
 // ── RISK OF THE DAY ──────────────────────────────────────────
 function renderRisk() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = document.getElementById('dateStart').value || new Date().toISOString().split('T')[0];
   const items    = DATA.details.filter(d => d.promise === todayStr);
   const body     = document.getElementById('risk-body');
   const badge    = document.getElementById('risk-badge');
@@ -885,7 +885,7 @@ function renderRisk() {
 
   if (!items.length) {
     sub.textContent  = `Nenhum pacote com promessa para ${fmtDate(todayStr)} foi retirado`;
-    body.innerHTML   = `<div class="risk-empty">Nenhum pacote com promessa para hoje foi retirado da rota</div>`;
+    body.innerHTML   = `<div class="risk-empty">Nenhum pacote com promessa para ${fmtDate(todayStr)} foi retirado da rota</div>`;
     return;
   }
 
